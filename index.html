@@ -33,7 +33,7 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .hud{position:absolute;z-index:4;left:16px;top:13px;font-size:8px;color:#7b715e;letter-spacing:1.6px}.zoom{position:absolute;z-index:8;right:14px;bottom:14px;display:flex;gap:5px}.zoom button,.mini{background:#111515;border:1px solid #554832;color:#a99772;padding:7px 10px}.zoom button:hover,.mini:hover{border-color:#9c7e4d;color:#e1c58a}
 .system{position:absolute;z-index:3;transform:translate(-50%,-50%);min-width:52px;text-align:center;user-select:none;cursor:pointer;--ss:1}.system .sigil{width:calc(25px * var(--ss));height:calc(25px * var(--ss));margin:auto;border-radius:50%;border:2px solid currentColor;background:currentColor;box-shadow:0 0 0 4px rgba(188,157,92,.07),0 0 calc(16px * var(--ss)) currentColor88;transition:.15s}.system.major .sigil{width:calc(36px * var(--ss));height:calc(36px * var(--ss));box-shadow:0 0 0 5px rgba(188,157,92,.1),0 0 calc(22px * var(--ss)) currentColor99}.system .name{font-size:calc(var(--system-font-size, 8px) * var(--map-text-scale,1));white-space:nowrap;color:#c0b59a;text-shadow:0 1px 3px #000;margin-top:calc(4px * var(--ss))}.system.major .name{font-size:calc(var(--system-font-size, 10px) * var(--map-text-scale,1));color:#dfc98e;font-weight:700}.system .kind{font-size:calc(var(--system-kind-size, 7px) * var(--map-text-scale,1));color:#736b5b;margin-top:2px}.system:hover .sigil{box-shadow:0 0 0 6px rgba(202,168,98,.16),0 0 24px currentColor88}.system.selected .sigil{outline:2px solid #e1c38b;outline-offset:3px}
 .modal.wide{width:min(900px,94vw)}
-.system-modal{width:100%!important;box-sizing:border-box}
+.system-modal{width:100%!important;box-sizing:border-box;position:relative;z-index:1;pointer-events:auto}.system-modal button,.system-modal input,.system-modal select,.system-modal textarea{pointer-events:auto}
 .system-map{position:relative;height:470px;background:radial-gradient(circle,#111b1b 0,#080d0e 55%,#050708 100%);border:1px solid #4e432f;overflow:hidden;margin:10px 0 12px;cursor:grab}
 .system-map:active{cursor:grabbing}
 .system-map:before{content:"";position:absolute;inset:0;background-image:radial-gradient(#b7a77f .7px,transparent .8px);background-size:67px 53px;opacity:.25;pointer-events:none}
@@ -48,7 +48,7 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .planet-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-size:var(--planet-font-size,7px);color:#cbbd9d;white-space:nowrap;pointer-events:none;z-index:3;text-shadow:0 1px 3px #000}
 .planet-note{position:absolute;z-index:7;left:12px;bottom:12px;width:min(330px,48%);background:#0c100fe8;border:1px solid #675538;box-shadow:0 8px 30px #000;padding:10px;pointer-events:auto}
 .planet-note b{display:block;color:#dec68b;font-size:11px;margin-bottom:6px}.planet-note span{display:block;color:#958970;font-size:8px;line-height:1.55}.planet-note p{margin:5px 0 0;color:#b8ad95;font:9px Georgia;line-height:1.45}
-.planet-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;max-height:190px;overflow:auto}
+.planet-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:6px;max-height:190px;overflow:auto;position:relative;z-index:10;pointer-events:auto}
 .planet-item{border:1px solid #3e3528;background:#0b0e0d;padding:8px;font-size:8px;cursor:pointer}
 .planet-item:hover{border-color:#8d7547;background:#101311}.planet-item b{color:#d3bc83}.planet-item span{display:block;color:#766e5e;font-size:7px;margin-top:3px}.planet-item button{margin-top:5px;background:#161815;border:1px solid #4f422f;color:#b7a67f;padding:4px 7px;font-size:7px;cursor:pointer}.planet-item button:hover{border-color:#a98953;color:#e1c78b}
 .planet-editor{border:1px solid #4d412f;background:#0b0e0d;padding:9px;margin-top:8px}.planet-editor .field{margin:5px 0}
@@ -56,7 +56,7 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .s-type{color:#9eb1a0}.o-type{color:#6fa2b0}.h-type{color:#c08a65}.d-type{color:#a56b5c}.f-type{color:#9a9a8e}.a-type{color:#b6a16a}.j-type{color:#6e9d6d}.x-type{color:#8f77a2}
 .battle{position:absolute;z-index:4;transform:translate(-50%,-50%);font-size:18px;color:#c7a461;text-shadow:0 0 12px #a52e1f;cursor:pointer}.battle:after{content:"";position:absolute;inset:-7px;border:1px solid #8e4e3b;border-radius:50%;opacity:.55}.battle:hover{color:#e6cc8d}
 .faction-line{position:absolute;height:1px;transform-origin:left center;opacity:.38;z-index:1;pointer-events:none}
-.panel-title{font-size:10px;color:var(--gold);letter-spacing:1.2px;margin:0 0 11px}.card{background:#0e1110;border:1px solid #423829;padding:11px;margin-bottom:10px}.field{margin:7px 0}.field label{display:block;color:#817865;font-size:8px;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;background:#080a0a;border:1px solid #453a2b;padding:7px;font-size:9px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#91764a}.field textarea{min-height:68px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions{display:flex;gap:6px;margin-top:9px}.actions button{flex:1;background:#191a18;border:1px solid #55452f;padding:7px;font-size:8px;color:#bbaa83}.actions .danger{border-color:#63352e;color:#c08373}.pill{display:inline-block;padding:3px 6px;border:1px solid #554631;font-size:7px;color:#9d8e6d;margin:2px}
+.panel-title{font-size:10px;color:var(--gold);letter-spacing:1.2px;margin:0 0 11px}.card{background:#0e1110;border:1px solid #423829;padding:11px;margin-bottom:10px}.field{margin:7px 0}.field label{display:block;color:#817865;font-size:8px;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;background:#080a0a;border:1px solid #453a2b;padding:7px;font-size:9px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#91764a}.field textarea{min-height:68px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions{display:flex;gap:6px;margin-top:9px;position:relative;z-index:20;pointer-events:auto}.actions button{flex:1;background:#191a18;border:1px solid #55452f;padding:7px;font-size:8px;color:#bbaa83}.actions .danger{border-color:#63352e;color:#c08373}.pill{display:inline-block;padding:3px 6px;border:1px solid #554631;font-size:7px;color:#9d8e6d;margin:2px}
 .list{max-height:185px;overflow:auto}.list-item{display:flex;justify-content:space-between;align-items:center;padding:7px 5px;border-bottom:1px solid #28261f;font-size:8px}.list-item button{background:none;border:0;color:#806d55}.empty{font-size:8px;color:#625b4e;line-height:1.6}
 .modal-back{position:fixed;z-index:50;inset:0;background:#000b;display:none;align-items:center;justify-content:center}.modal-back.open{display:flex}.modal{width:min(610px,92vw);max-height:88vh;overflow:auto;background:linear-gradient(#171817,#0c0e0d);border:1px solid #725d3b;box-shadow:0 18px 80px #000;padding:17px}.modal h2{margin:0;color:#d6bc80;font-size:17px;letter-spacing:1px}.modal .sub{font-size:8px;color:#746a57;margin:4px 0 14px}.close{float:right;background:none;border:0;color:#9b896a;font-size:18px}.notice{position:absolute;z-index:20;left:50%;top:20px;transform:translateX(-50%);background:#171813;border:1px solid #735d3a;padding:8px 14px;font-size:8px;color:#c5b184;opacity:0;pointer-events:none;transition:.2s}.notice.show{opacity:1}
 @media(max-width:900px){.app{grid-template-columns:190px 1fr}.right{display:none}.brand small{display:none}}
@@ -188,12 +188,37 @@ function openSystemMiniMap(s){ensureSystemFont(s);
     el.ondblclick=e=>{e.stopPropagation();const p=s.planets.find(x=>x.id===el.dataset.planet);if(p)editPlanet(p);};
   });
   $("#modalBody [data-planet-item]").forEach(el=>el.onclick=e=>{if(e.target.closest("button"))return;const p=s.planets.find(x=>x.id===el.dataset.planetItem);if(p)showNote(p);});
+  // Единый обработчик кнопок мини-карты: работает и после перерисовки окна.
+  $("#modalBody").onclick=e=>{
+    const btn=e.target.closest("button");
+    if(!btn)return;
+    e.stopPropagation();
+    if(btn.id==="miniIn"){mini.zoom=Math.min(3,mini.zoom*1.2);renderMini();return}
+    if(btn.id==="miniOut"){mini.zoom=Math.max(.45,mini.zoom*.83);renderMini();return}
+    if(btn.id==="miniReset"){mini.zoom=1;mini.panX=0;mini.panY=0;renderMini();return}
+    if(btn.id==="closeSystemMap"){ $("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide");return}
+    if(btn.id==="addPlanet"){
+      const n=s.planets.length+1;
+      s.planets.push({id:uid("p"),name:s.name+" "+n,population:"—",type:"Террестриальная",size:1,orbit:70+n*48,desc:"",fontSize:7});
+      save();openSystemMiniMap(s);notify("Планета добавлена");return;
+    }
+    if(btn.dataset.editPlanet){
+      const p=s.planets.find(x=>x.id===btn.dataset.editPlanet);if(p)editPlanet(p);return;
+    }
+    if(btn.id==="editPlanetNote"){
+      const note=$("#planetNote");
+      const selected=s.planets.find(p=>note?.dataset?.planetId===p.id);
+      if(selected)editPlanet(selected);
+      return;
+    }
+  };
+
   $$("#modalBody [data-edit-planet]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();const p=s.planets.find(x=>x.id===btn.dataset.editPlanet);if(p)editPlanet(p);});
   $("#addPlanet").onclick=()=>{const n=s.planets.length+1;s.planets.push({id:uid("p"),name:s.name+" "+n,population:"—",type:"Террестриальная",size:1,orbit:70+n*48,desc:""});save();openSystemMiniMap(s);notify("Планета добавлена");};
   $("#closeSystemMap").onclick=()=>{$("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide")};
-  $("#miniIn").onclick=()=>{mini.zoom=Math.min(3,mini.zoom*1.2);renderMini();};
-  $("#miniOut").onclick=()=>{mini.zoom=Math.max(.45,mini.zoom*.83);renderMini();};
-  $("#miniReset").onclick=()=>{mini.zoom=1;mini.panX=0;mini.panY=0;renderMini();};
+  $("#miniIn").onclick=e=>{e.stopPropagation();mini.zoom=Math.min(3,mini.zoom*1.2);renderMini();};
+  $("#miniOut").onclick=e=>{e.stopPropagation();mini.zoom=Math.max(.45,mini.zoom*.83);renderMini();};
+  $("#miniReset").onclick=e=>{e.stopPropagation();mini.zoom=1;mini.panX=0;mini.panY=0;renderMini();};
   $("#systemMap").addEventListener("mousedown",e=>{
     if(e.button!==0||e.target.closest("button,.planet,.planet-item,.planet-note,.planet-editor"))return;
     mini.drag=true;mini.lastX=e.clientX;mini.lastY=e.clientY;
