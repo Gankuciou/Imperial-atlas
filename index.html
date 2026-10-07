@@ -252,7 +252,6 @@ function buildLegionAtlas(){
         planets:pn.map((n,j)=>({id:uid("p"),name:n,population:"—",type:j===0?"Террестриальная":LEGION_PLANET_TYPES[j%LEGION_PLANET_TYPES.length],size:j===0?1.05:.7,orbit:70+j*50,desc:name.startsWith("Истваан")?"Каноническое небесное тело системы Истваан.":"Небесное тело имперского домена.",angle:(j/pn.length)*Math.PI*2-.8}))};
       systems.push(s);
       if(si>0)links.push(["fEMP_"+emperorIndex,s.id]);
-      if(si===0&&ci>0)links.push(["fEMP_"+(emperorIndex),s.id]);
     });
   });
   return {systems,factions,battles:[],links};
