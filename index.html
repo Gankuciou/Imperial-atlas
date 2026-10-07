@@ -176,7 +176,7 @@ function openSystemMiniMap(s){
   }).join("")+"</div>"+
   "<div class=\"system-map-controls\"><button id=\"miniIn\">＋</button><button id=\"miniOut\">−</button><button id=\"miniReset\">1:1</button></div>"+
   "<div class=\"planet-note\" id=\"planetNote\"><b>Выберите планету</b><span>Название · Население · Тип мира</span><p>Нажмите на планету на схеме или в списке ниже.</p></div></div>"+
-  "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+""><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button data-edit-planet=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
+  "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+"\"><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button data-edit-planet=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
   "<div id=\"planetEditor\"></div><div class=\"actions\"><button id=\"addPlanet\">Добавить планету</button><button id=\"closeSystemMap\">Закрыть</button></div></div>";
   $("#modalBack").classList.add("open"); renderMini();
   $("#systemMap .planet").forEach(el=>{
