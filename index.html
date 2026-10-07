@@ -121,7 +121,7 @@ battles:[
 ],
 links:[["s1","s2"],["s2","s3"],["s3","s6"],["s6","s7"],["s7","s8"],["s8","s9"],["s3","s7"],["s2","s4"]]
 };
-const LEGION_ATLAS_VERSION=4;
+const LEGION_ATLAS_VERSION=5;
 const LEGION_DEFINITIONS=[
 {id:"fDA",name:"I легион — Тёмные Ангелы",color:"#60727a",count:10,home:"Калибан",systems:["Калибан","Пердитус","Сарош","Карксаран","Тиамат","Трамас"]},
 {id:"fEC",name:"III легион — Дети Императора",color:"#a04d79",count:6,home:"Хемос",systems:["Хемос","Лаэран","Калийские Врата","Экспедиция Феникс"]},
@@ -164,7 +164,14 @@ const CANON_PLANETS={
 "Киавар":["Киавар","Деливеранс"],"Ликаэус":["Ликаэус"],"Сарош":["Сарош"],"Пердитус":["Пердитус"],"Трамас":["Трамас"],
 "Талларн":["Талларн"],"Хоадх":["Хоадх"],"Монархия":["Монархия"],"Карксаран":["Карксаран"]
 };
-const EMPEROR_NAMES=["Терра","Марс","Луна","Меркурий","Венера","Юпитер","Сатурн","Уран","Нептун","Плутон","Ио","Европа","Ганимед","Каллисто","Титан","Энцелад","Тритон","Церера","Веста","Молния"];
+const EMPEROR_CLUSTERS=[
+  {name:"Солнечный домен",center:[2250,1710],systems:["Терра","Марс","Луна","Меркурий","Венера","Юпитер"]},
+  {name:"Истваанский кластер",center:[1350,1250],systems:["Истваан","Истваан III","Истваан IV","Истваан V"]},
+  {name:"Улланорский кластер",center:[3350,850],systems:["Улланор","Улланор-Предел","Галактический Трон"]},
+  {name:"Давинско-Калтский кластер",center:[3450,2200],systems:["Давин","Калт","Калтский Предел"]},
+  {name:"Восточный имперский кластер",center:[1350,2750],systems:["Молох","Сигнус Прайм","Никаея","Центр Имперского Транзита"]}
+];
+const EMPEROR_NAMES=EMPEROR_CLUSTERS.flatMap(c=>c.systems);
 const EMPEROR_PLANETS={"Терра":["Терра","Луна"],"Марс":["Марс","Фобос","Деймос"],"Луна":["Луна"],"Юпитер":["Юпитер","Ио","Европа","Ганимед","Каллисто"],"Сатурн":["Сатурн","Титан","Энцелад"],"Уран":["Уран","Титания","Оберон","Ариэль","Умбриэль","Миранда"],"Нептун":["Нептун","Тритон"],"Плутон":["Плутон","Харон"]};
 const LEGION_PLANET_TYPES=["Террестриальная","Газовый гигант","Ледяная","Океаническая","Пустынная","Мёртвая","Джунглевая","Кузнечная"];
 const LEGION_EXTRA_WORLDS={
@@ -222,13 +229,31 @@ function buildLegionAtlas(){
       systems.push(s); if(i>0) links.push([d.id+"_"+i,s.id]);
     });
   });
-  const ex=[2250,1710];
-  EMPEROR_NAMES.forEach((name,i)=>{
-    const a=(i/20)*Math.PI*2,rr=260+(i%4)*90;
-    const x=ex[0]+Math.cos(a)*rr,y=ex[1]+Math.sin(a)*rr;
-    const pn=EMPEROR_PLANETS[name]||[name];
-    const s={id:"fEMP_"+(i+1),name,type:i<5?"civilized":i<10?"hive":"military",population:"—",size:i===0?1.5:.85+(i%3)*.08,desc:i===0?"Терра — центр Империума и владений Императора.":"Система Солнечного домена.",features:i===0?"ТЕРРА · ЦЕНТР ИМПЕРИУМА":"Имперское владение",faction:"fEMP",x,y,major:i===0,fontSize:i===0?11:9,planets:pn.map((n,j)=>({id:uid("p"),name:n,population:"—",type:j===0?"Террестриальная":LEGION_PLANET_TYPES[j%LEGION_PLANET_TYPES.length],size:j===0?1.05:.7,orbit:70+j*50,desc:"Каноническое небесное тело Солнечной системы.",angle:(j/pn.length)*Math.PI*2-.8}))};
-    systems.push(s); if(i>0) links.push(["fEMP_"+i,s.id]);
+  let emperorIndex=0;
+  EMPEROR_CLUSTERS.forEach((cluster,ci)=>{
+    cluster.systems.forEach((name,si)=>{
+      const seed=(ci+1)*131+(si+1)*71;
+      const angle=-1.4+si*1.65+Math.sin(seed)*0.32;
+      const radius=55+si*62+Math.sin(seed*0.61)*20;
+      const x=cluster.center[0]+Math.cos(angle)*radius+Math.sin(seed*0.77)*28;
+      const y=cluster.center[1]+Math.sin(angle)*radius+Math.cos(seed*0.53)*25;
+      const pn=EMPEROR_PLANETS[name]||(
+        name==="Истваан"?["Истваан III","Истваан IV","Истваан V"]:
+        name==="Истваан III"?["Истваан III"]:
+        name==="Истваан IV"?["Истваан IV"]:
+        name==="Истваан V"?["Истваан V"]:
+        [name]
+      );
+      const isTerra=name==="Терра";
+      const s={id:"fEMP_"+(++emperorIndex),name,type:isTerra?"civilized":(ci===0?"hive":"military"),population:"—",size:isTerra?1.5:.85+(si%3)*.08,
+        desc:isTerra?"Терра — центр Империума и владений Императора.":"Система имперского домена. Кластер: "+cluster.name+".",
+        features:isTerra?"ТЕРРА · ЦЕНТР ИМПЕРИУМА":"ИМПЕРСКИЙ КЛАСТЕР · "+cluster.name.toUpperCase(),
+        faction:"fEMP",x,y,major:isTerra,fontSize:isTerra?11:9,
+        planets:pn.map((n,j)=>({id:uid("p"),name:n,population:"—",type:j===0?"Террестриальная":LEGION_PLANET_TYPES[j%LEGION_PLANET_TYPES.length],size:j===0?1.05:.7,orbit:70+j*50,desc:name.startsWith("Истваан")?"Каноническое небесное тело системы Истваан.":"Небесное тело имперского домена.",angle:(j/pn.length)*Math.PI*2-.8}))};
+      systems.push(s);
+      if(si>0)links.push(["fEMP_"+emperorIndex,s.id]);
+      if(si===0&&ci>0)links.push(["fEMP_"+(emperorIndex),s.id]);
+    });
   });
   return {systems,factions,battles:[],links};
 }
