@@ -121,7 +121,80 @@ battles:[
 ],
 links:[["s1","s2"],["s2","s3"],["s3","s6"],["s6","s7"],["s7","s8"],["s8","s9"],["s3","s7"],["s2","s4"]]
 };
-let data=JSON.parse(localStorage.getItem("imperialAtlasV2")||"null")||seed;
+const LEGION_ATLAS_VERSION=1;
+const LEGION_DEFINITIONS=[
+{id:"fDA",name:"I легион — Тёмные Ангелы",color:"#60727a",count:10,home:"Калибан",systems:["Калибан","Пердитус","Сарош","Карксаран","Тиамат","Трамас"]},
+{id:"fEC",name:"III легион — Дети Императора",color:"#a04d79",count:6,home:"Хемос",systems:["Хемос","Лаэран","Калийские Врата","Экспедиция Феникс"]},
+{id:"fIW",name:"IV легион — Железные Воины",color:"#8a7967",count:9,home:"Олимпия",systems:["Олимпия","Феспис","Лохос","Талларн","Дельта-Олимпия"]},
+{id:"fWS",name:"V легион — Белые Шрамы",color:"#d8d2bc",count:8,home:"Чогорис",systems:["Чогорис","Хоадх","Кольарн","Ясан","Куан Чжоу"]},
+{id:"fSW",name:"VI легион — Космические Волки",color:"#7d91a5",count:9,home:"Фенрис",systems:["Фенрис","Мидгардия","Суртур","Аспарагус","Квадрис"]},
+{id:"fIF",name:"VII легион — Имперские Кулаки",color:"#d2a83f",count:10,home:"Инвит",systems:["Инвит","Терра","Некромунда","Харниш","Инвитский Кластер"]},
+{id:"fNL",name:"VIII легион — Повелители Ночи",color:"#4e596b",count:7,home:"Нострамо",systems:["Нострамо","Цагуальса","Круун","Врак","Улан-Худа"]},
+{id:"fBA",name:"IX легион — Кровавые Ангелы",color:"#9b3f42",count:9,home:"Баал",systems:["Баал","Баал Секундус","Сигнус Прайм","Диамат","Баалский Кластер"]},
+{id:"fIH",name:"X легион — Железные Руки",color:"#7e8588",count:8,home:"Медуза",systems:["Медуза","Олд Альбия","Шадрак","Истваан V","Клановые Владения"]},
+{id:"fWE",name:"XII легион — Пожиратели Миров",color:"#b44835",count:7,home:"Нуцерия",systems:["Нуцерия","Бодт","Гарм","Алтаны","Предел Ультрамара"]},
+{id:"fUM",name:"XIII легион — Ультрамарины",color:"#4779ad",count:15,home:"Макрагг",systems:["Макрагг","Калт","Иакс","Конор","Окклуда","Эспандор","Квинтарн","Тарентус","Масали","Сараманф","Талассар","Прандиум","Темпестра","Фейрекс","Сотир"]},
+{id:"fDG",name:"XIV легион — Гвардия Смерти",color:"#75805d",count:8,home:"Барбарус",systems:["Барбарус","Галакс","Кармис","Сепульхр","Мортифакс"]},
+{id:"fTS",name:"XV легион — Тысяча Сынов",color:"#795f9a",count:5,home:"Просперо",systems:["Просперо","Сортиариус","Халкхон","Мегаведа","Телхайн"]},
+{id:"fSOH",name:"XVI легион — Сыны Хоруса",color:"#8d6f4e",count:12,home:"Ктония",systems:["Ктония","Давин","Серпина","Магос","Гелиос"]},
+{id:"fWB",name:"XVII легион — Несущие Слово",color:"#704b72",count:9,home:"Колхида",systems:["Колхида","Монархия","Сикарус","Галмек","Моэрг IV"]},
+{id:"fSAL",name:"XVIII легион — Саламандры",color:"#4f8a63",count:7,home:"Ноктюрн",systems:["Ноктюрн","Прометей","Фензар","Гераш","Чор'ва"]},
+{id:"fRG",name:"XIX легион — Гвардия Ворона",color:"#596a77",count:8,home:"Деливеранс",systems:["Деливеранс","Киавар","Ликаэус","Равенс-Шпиль","Форсар"]},
+{id:"fAL",name:"XX легион — Альфа-легион",color:"#3f8b88",count:8,home:"Неизвестен",systems:["Неизвестный сектор","Альфа-узел","Омега-узел","Хидденхольд","Гамма-узел"]}
+];
+const LEGION_CENTERS=[[1500,900],[3000,900],[4500,900],[6000,900],[7500,900],[1500,2400],[3000,2400],[6000,2400],[7500,2400],[1500,4800],[3000,4800],[4500,4800],[6000,4800],[7500,4800],[1500,6200],[3000,6200],[6000,6200],[7500,6200]];
+const CANON_PLANETS={
+"Калибан":["Калибан"],"Хемос":["Хемос"],"Олимпия":["Олимпия"],"Чогорис":["Чогорис"],"Фенрис":["Фенрис"],
+"Инвит":["Инвит"],"Терра":["Терра","Луна"],"Некромунда":["Некромунда"],"Нострамо":["Нострамо"],"Цагуальса":["Цагуальса"],
+"Баал":["Баал","Баал Примус","Баал Секундус"],"Медуза":["Медуза"],"Нуцерия":["Нуцерия"],"Бодт":["Бодт"],
+"Макрагг":["Макрагг"],"Калт":["Калт"],"Иакс":["Иакс"],"Конор":["Конор"],"Окклуда":["Окклуда"],"Эспандор":["Эспандор"],
+"Квинтарн":["Квинтарн"],"Тарентус":["Тарентус"],"Масали":["Масали"],"Сараманф":["Сараманф"],"Талассар":["Талассар"],
+"Прандиум":["Прандиум"],"Просперо":["Просперо","Сортиариус","Халкхон","Мегаведа","Телхайн","Дануб","Циприя Селена"],
+"Сортиариус":["Сортиариус"],"Халкхон":["Халкхон"],"Мегаведа":["Мегаведа"],"Телхайн":["Телхайн"],"Ктония":["Ктония"],"Давин":["Давин"],
+"Колхида":["Колхида"],"Сикарус":["Сикарус"],"Галмек":["Галмек"],"Моэрг IV":["Моэрг IV"],"Ноктюрн":["Ноктюрн","Прометей","Фензар","Гераш","Чор'ва"],
+"Прометей":["Прометей"],"Фензар":["Фензар"],"Гераш":["Гераш"],"Чор'ва":["Чор'ва"],"Деливеранс":["Деливеранс","Киавар"],
+"Киавар":["Киавар","Деливеранс"],"Ликаэус":["Ликаэус"],"Сарош":["Сарош"],"Пердитус":["Пердитус"],"Трамас":["Трамас"],
+"Талларн":["Талларн"],"Хоадх":["Хоадх"],"Монархия":["Монархия"],"Карксаран":["Карксаран"]
+};
+const EMPEROR_NAMES=["Терра","Марс","Луна","Меркурий","Венера","Юпитер","Сатурн","Уран","Нептун","Плутон","Ио","Европа","Ганимед","Каллисто","Титан","Энцелад","Тритон","Церера","Веста","Молния"];
+const EMPEROR_PLANETS={"Терра":["Терра","Луна"],"Марс":["Марс","Фобос","Деймос"],"Луна":["Луна"],"Юпитер":["Юпитер","Ио","Европа","Ганимед","Каллисто"],"Сатурн":["Сатурн","Титан","Энцелад"],"Уран":["Уран","Титания","Оберон","Ариэль","Умбриэль","Миранда"],"Нептун":["Нептун","Тритон"],"Плутон":["Плутон","Харон"]};
+const LEGION_PLANET_TYPES=["Террестриальная","Газовый гигант","Ледяная","Океаническая","Пустынная","Мёртвая","Джунглевая","Кузнечная"];
+function buildLegionPlanets(name){
+  const known=CANON_PLANETS[name];
+  const names=known||[name,name+" Primus",name+" Secundus"];
+  return names.map((n,i)=>({id:uid("p"),name:n,population:"—",type:i===0?"Террестриальная":LEGION_PLANET_TYPES[i%LEGION_PLANET_TYPES.length],size:i===0?1.05:.7+(i%3)*.15,orbit:70+i*48,desc:known?"Каноническое небесное тело.":"Астрографическое обозначение системы.",angle:(i/names.length)*Math.PI*2-.8}));
+}
+function buildLegionAtlas(){
+  const factions=LEGION_DEFINITIONS.map(d=>({id:d.id,name:d.name,color:d.color,desc:"Legiones Astartes · "+d.home+" — канонический родной мир. Кластер систем легиона."}));
+  factions.push({id:"fEMP",name:"Император — Терра и Солнечная система",color:"#d0b56b",desc:"Владения Императора. 20 систем, сгруппированных вокруг Солнечного домена."});
+  const systems=[],links=[];
+  LEGION_DEFINITIONS.forEach((d,gi)=>{
+    const [cx,cy]=LEGION_CENTERS[gi];
+    const names=d.systems.slice(); while(names.length<d.count) names.push(d.home+" · Рубеж "+String(names.length+1).padStart(2,"0"));
+    names.slice(0,d.count).forEach((name,i)=>{
+      const cols=4,gapX=170,gapY=155,col=i%cols,row=Math.floor(i/cols);
+      const x=cx+(col-(cols-1)/2)*gapX,y=cy+(row-Math.floor((d.count-1)/cols)/2)*gapY;
+      const home=name===d.home;
+      const s={id:d.id+"_"+(i+1),name,type:home?"civilized":"colony",population:"—",size:home?1.35:.9+(i%3)*.08,desc:home?"Канонический родной мир легиона.":"Система легионной зоны ответственности.",features:home?"РОДНОЙ МИР · КАНОН":"Легионная система",faction:d.id,x,y,major:home,fontSize:home?11:9,planets:buildLegionPlanets(name)};
+      systems.push(s); if(i>0) links.push([d.id+"_"+i,s.id]);
+    });
+  });
+  const ex=[4500,3420];
+  EMPEROR_NAMES.forEach((name,i)=>{
+    const a=(i/20)*Math.PI*2,rr=260+(i%4)*90;
+    const x=ex[0]+Math.cos(a)*rr,y=ex[1]+Math.sin(a)*rr;
+    const pn=EMPEROR_PLANETS[name]||[name];
+    const s={id:"fEMP_"+(i+1),name,type:i<5?"civilized":i<10?"hive":"military",population:"—",size:i===0?1.5:.85+(i%3)*.08,desc:i===0?"Терра — центр Империума и владений Императора.":"Система Солнечного домена.",features:i===0?"ТЕРРА · ЦЕНТР ИМПЕРИУМА":"Имперское владение",faction:"fEMP",x,y,major:i===0,fontSize:i===0?11:9,planets:pn.map((n,j)=>({id:uid("p"),name:n,population:"—",type:j===0?"Террестриальная":LEGION_PLANET_TYPES[j%LEGION_PLANET_TYPES.length],size:j===0?1.05:.7,orbit:70+j*50,desc:"Каноническое небесное тело Солнечной системы.",angle:(j/pn.length)*Math.PI*2-.8}))};
+    systems.push(s); if(i>0) links.push(["fEMP_"+i,s.id]);
+  });
+  return {systems,factions,battles:[],links};
+}
+let data;
+if(localStorage.getItem("imperialAtlasLegionsVersion")!=="1"){
+  data=buildLegionAtlas();
+  localStorage.setItem("imperialAtlasLegionsVersion","1");
+  localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
+}else data=JSON.parse(localStorage.getItem("imperialAtlasV2")||"null")||buildLegionAtlas();
 const MAP_SCALE_VERSION=4;
 const savedScale=Number(localStorage.getItem("imperialAtlasMapScale")||0);
 if(savedScale<MAP_SCALE_VERSION){
