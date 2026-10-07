@@ -150,89 +150,194 @@ function ensurePlanets(s){
   s.planets.forEach((p,i)=>{
     p.id=p.id||uid("p"); p.name=p.name||((s.name||"Мир")+" "+(["I","II","III","IV","V","VI","VII"][i]||String(i+1)));
     p.population=p.population??"—"; p.type=p.type||PLANET_TYPES[i%PLANET_TYPES.length]; p.fontSize=Number(p.fontSize)||7;
-    p.size=Number(p.size)||1; p.orbit=Number(p.orbit)||(70+i*48); p.desc=p.desc??"";
+    p.size=Number(p.size)||1; p.orbit=Number(p.orbit)||(70+i*48); p.angle=Number.isFinite(Number(p.angle))?Number(p.angle):(i/s.planets.length)*Math.PI*2-.8; p.desc=p.desc??"";
   });
 }
-function openSystemMiniMap(s){ensureSystemFont(s);
+function openSystemMiniMap(s){
+  ensureSystemFont(s);
   ensurePlanets(s);
-  const planets=s.planets;
-  let mini={zoom:1,panX:0,panY:0,drag:false,lastX:0,lastY:0};
-  const renderMini=()=>{const inner=$("#systemMapInner");if(inner)inner.style.transform="translate("+mini.panX+"px,"+mini.panY+"px) scale("+mini.zoom+")";};
-  const showNote=p=>{
-    const note=$("#planetNote"); if(!note)return;
-    note.innerHTML="<b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · Тип мира: "+esc(p.type||"—")+"</span><p>"+esc(p.desc||"Описание отсутствует.")+"</p><div class=\"actions\"><button id=\"editPlanetNote\">Редактировать</button></div>";
-    $("#editPlanetNote").onclick=()=>editPlanet(p);
+  save();
+
+  let mini={zoom:1,panX:0,panY:0,drag:false,lastX:0,lastY:0,planetDrag:null};
+  const modal=()=>$("#modalBody");
+  const mapEl=()=>$("#systemMap");
+
+  const planetAt=(id)=>s.planets.find(p=>p.id===id);
+
+  const renderMini=()=>{
+    const inner=$("#systemMapInner");
+    if(inner) inner.style.transform="translate("+mini.panX+"px,"+mini.panY+"px) scale("+mini.zoom+")";
   };
+
+  const showNote=p=>{
+    const note=$("#planetNote");
+    if(!note)return;
+    note.dataset.planetId=p.id;
+    note.innerHTML="<b>"+esc(p.name)+"</b>"+
+      "<span>Население: "+esc(p.population||"—")+" · Тип мира: "+esc(p.type||"—")+"</span>"+
+      "<p>"+esc(p.desc||"Описание отсутствует.")+"</p>"+
+      "<div class=\"actions\"><button type=\"button\" data-action=\"edit-note\" data-id=\""+p.id+"\">Редактировать</button></div>";
+  };
+
   const editPlanet=p=>{
-    const editor=$("#planetEditor"); if(!editor)return;
+    const editor=$("#planetEditor");
+    if(!editor)return;
     editor.innerHTML="<div class=\"planet-editor\"><div class=\"panel-title\">ДАННЫЕ ПЛАНЕТЫ</div>"+
-      "<div class=\"row\"><div class=\"field\"><label>Название</label><input id=\"pName\" value=\""+esc(p.name)+"\"></div><div class=\"field\"><label>Размер шрифта</label><input id=\"pFontSize\" type=\"number\" min=\"6\" max=\"24\" step=\"1\" value=\""+(p.fontSize||7)+"\"></div></div>"+"<div class=\"row\"><div class=\"field\"><label>Население</label><input id=\"pPop\" value=\""+esc(p.population||"—")+"\"></div></div>"+
+      "<div class=\"row\"><div class=\"field\"><label>Название</label><input id=\"pName\" value=\""+esc(p.name)+"\"></div>"+
+      "<div class=\"field\"><label>Размер шрифта</label><input id=\"pFontSize\" type=\"number\" min=\"6\" max=\"24\" step=\"1\" value=\""+(p.fontSize||7)+"\"></div></div>"+
+      "<div class=\"row\"><div class=\"field\"><label>Население</label><input id=\"pPop\" value=\""+esc(p.population||"—")+"\"></div>"+
+      "<div class=\"field\"><label>Размер планеты</label><input id=\"pSize\" type=\"number\" min=\"0.3\" max=\"3\" step=\"0.1\" value=\""+(p.size||1)+"\"></div></div>"+
       "<div class=\"field\"><label>Тип мира</label><select id=\"pType\">"+PLANET_TYPES.map(t=>"<option "+(p.type===t?"selected":"")+">"+esc(t)+"</option>").join("")+"</select></div>"+
       "<div class=\"field\"><label>Описание</label><textarea id=\"pDesc\">"+esc(p.desc||"")+"</textarea></div>"+
-      "<div class=\"actions\"><button id=\"savePlanet\">Сохранить планету</button><button class=\"danger\" id=\"deletePlanet\">Удалить</button></div></div>";
-    $("#savePlanet").onclick=()=>{Object.assign(p,{name:$("#pName").value||"Безымянная планета",fontSize:Math.max(6,Math.min(24,+$("#pFontSize").value||7)),population:$("#pPop").value||"—",type:$("#pType").value,desc:$("#pDesc").value});save();openSystemMiniMap(s);notify("Планета сохранена");};
-    $("#deletePlanet").onclick=()=>{if(confirm("Удалить планету из системы?")){s.planets=s.planets.filter(x=>x.id!==p.id);save();openSystemMiniMap(s);notify("Планета удалена");}};
+      "<div class=\"actions\"><button type=\"button\" data-action=\"save-planet\" data-id=\""+p.id+"\">Сохранить планету</button><button type=\"button\" class=\"danger\" data-action=\"delete-planet\" data-id=\""+p.id+"\">Удалить</button></div></div>";
   };
-  $("#modalBody").innerHTML="<div class=\"system-modal\"><h2>СИСТЕМА · "+esc(s.name)+"</h2><div class=\"sub\">"+esc(TYPES[s.type]?.[0]||s.type)+" · "+planets.length+" планет · Перетаскивание и колёсико мыши работают внутри карты</div>"+
-  "<div class=\"system-map\" id=\"systemMap\"><div class=\"system-map-inner\" id=\"systemMapInner\"><div class=\"system-star\"></div>"+planets.map((p,i)=>{
-    const angle=(i/planets.length)*Math.PI*2-.8,r=70+i*48,x=Math.cos(angle)*r,y=Math.sin(angle)*r,size=12+p.size*12;
-    return "<div class=\"planet-orbit\" style=\"width:"+r*2+"px;height:"+r*2+"px\"></div><div class=\"planet\" data-planet=\""+p.id+"\" style=\"width:"+size+"px;height:"+size+"px;margin-left:"+x+"px;margin-top:"+y+"px;background:"+PLANET_COLORS[i%PLANET_COLORS.length]+"\" title=\""+esc(p.name)+"\"></div><div class=\"planet-label\" style=\"--planet-font-size:"+(Number(p.fontSize)||7)+"px;margin-left:"+(x+size/2+7)+"px;margin-top:"+(y-size/2)+"px\">"+esc(p.name)+"</div>";
-  }).join("")+"</div>"+
-  "<div class=\"system-map-controls\"><button id=\"miniIn\">＋</button><button id=\"miniOut\">−</button><button id=\"miniReset\">1:1</button></div>"+
-  "<div class=\"planet-note\" id=\"planetNote\"><b>Выберите планету</b><span>Название · Население · Тип мира</span><p>Нажмите на планету на схеме или в списке ниже.</p></div></div>"+
-  "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+"\"><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button data-edit-planet=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
-  "<div id=\"planetEditor\"></div><div class=\"actions\"><button id=\"addPlanet\">Добавить планету</button><button id=\"closeSystemMap\">Закрыть</button></div></div>";
-  $("#modalBack .modal").classList.add("wide");$("#modalBack").classList.add("open"); renderMini();
-  $("#systemMap .planet").forEach(el=>{
-    el.onclick=e=>{e.stopPropagation();const p=s.planets.find(x=>x.id===el.dataset.planet);if(p)showNote(p);};
-    el.ondblclick=e=>{e.stopPropagation();const p=s.planets.find(x=>x.id===el.dataset.planet);if(p)editPlanet(p);};
-  });
-  $("#modalBody [data-planet-item]").forEach(el=>el.onclick=e=>{if(e.target.closest("button"))return;const p=s.planets.find(x=>x.id===el.dataset.planetItem);if(p)showNote(p);});
-  // Единый обработчик кнопок мини-карты: работает и после перерисовки окна.
-  $("#modalBody").onclick=e=>{
+
+  const renderWindow=()=>{
+    const planets=s.planets;
+    $("#modalBody").innerHTML="<div class=\"system-modal\"><h2>СИСТЕМА · "+esc(s.name)+"</h2>"+
+      "<div class=\"sub\">"+esc(TYPES[s.type]?.[0]||s.type)+" · "+planets.length+" планет · ЛКМ — выбор · перетаскивание планеты — изменение орбиты</div>"+
+      "<div class=\"system-map\" id=\"systemMap\"><div class=\"system-map-inner\" id=\"systemMapInner\"><div class=\"system-star\"></div>"+
+      planets.map(p=>{
+        const angle=Number(p.angle)||0;
+        const rr=Number(p.orbit)||70;
+        const x=Math.cos(angle)*rr;
+        const y=Math.sin(angle)*rr;
+        const size=12*(Number(p.size)||1);
+        const orbit=Math.max(35,rr);
+        return "<div class=\"planet-orbit\" style=\"width:"+orbit*2+"px;height:"+orbit*2+"px\"></div>"+
+          "<div class=\"planet\" data-planet=\""+p.id+"\" style=\"width:"+size+"px;height:"+size+"px;margin-left:"+x+"px;margin-top:"+y+"px;background:"+PLANET_COLORS[Math.abs(planets.indexOf(p))%PLANET_COLORS.length]+"\"></div>"+
+          "<div class=\"planet-label\" style=\"--planet-font-size:"+(Number(p.fontSize)||7)+"px;margin-left:"+(x+size/2+7)+"px;margin-top:"+(y-size/2)+"px\">"+esc(p.name)+"</div>";
+      }).join("")+
+      "</div><div class=\"system-map-controls\"><button type=\"button\" id=\"miniIn\">＋</button><button type=\"button\" id=\"miniOut\">−</button><button type=\"button\" id=\"miniReset\">1:1</button></div>"+
+      "<div class=\"planet-note\" id=\"planetNote\"><b>Выберите планету</b><span>Название · Население · Тип мира</span><p>Нажмите на планету на схеме или в списке ниже.</p></div></div>"+
+      "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+""><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button type=\"button\" data-action=\"edit-planet\" data-id=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
+      "<div id=\"planetEditor\"></div><div class=\"actions\"><button type=\"button\" data-action=\"add-planet\">Добавить планету</button><button type=\"button\" data-action=\"close-system\">Закрыть</button></div></div>";
+    $("#modalBack .modal").classList.add("wide");
+    $("#modalBack").classList.add("open");
+    renderMini();
+  };
+
+  renderWindow();
+
+  const body=modal();
+  body.onclick=e=>{
     const btn=e.target.closest("button");
+    const item=e.target.closest("[data-planet-item]");
+    const planetEl=e.target.closest(".planet");
+
+    if(planetEl){
+      e.stopPropagation();
+      const p=planetAt(planetEl.dataset.planet);
+      if(p)showNote(p);
+      return;
+    }
+
+    if(item && !btn){
+      const p=planetAt(item.dataset.planetItem);
+      if(p)showNote(p);
+      return;
+    }
+
     if(!btn)return;
+    e.preventDefault();
     e.stopPropagation();
+
+    const action=btn.dataset.action;
+    const id=btn.dataset.id;
+
+    if(action==="close-system"){
+      $("#modalBack").classList.remove("open");
+      $("#modalBack .modal").classList.remove("wide");
+      return;
+    }
+    if(action==="add-planet"){
+      const n=s.planets.length+1;
+      s.planets.push({id:uid("p"),name:s.name+" "+n,population:"—",type:PLANET_TYPES[(n-1)%PLANET_TYPES.length],size:1,orbit:70+(n-1)*48,angle:((n-1)/Math.max(1,n))*Math.PI*2-.8,desc:"",fontSize:7});
+      save(); renderWindow(); notify("Планета добавлена"); return;
+    }
+    if(action==="edit-planet"||action==="edit-note"){
+      const p=planetAt(id || $("#planetNote")?.dataset?.planetId);
+      if(p)editPlanet(p);
+      return;
+    }
+    if(action==="save-planet"){
+      const p=planetAt(id);
+      if(!p)return;
+      Object.assign(p,{
+        name:$("#pName").value||"Безымянная планета",
+        fontSize:Math.max(6,Math.min(24,+$("#pFontSize").value||7)),
+        population:$("#pPop").value||"—",
+        size:Math.max(.3,Math.min(3,+$("#pSize").value||1)),
+        type:$("#pType").value,
+        desc:$("#pDesc").value
+      });
+      save(); renderWindow(); showNote(p); notify("Планета сохранена"); return;
+    }
+    if(action==="delete-planet"){
+      const p=planetAt(id);
+      if(p&&confirm("Удалить планету из системы?")){
+        s.planets=s.planets.filter(x=>x.id!==p.id);
+        save(); renderWindow(); notify("Планета удалена");
+      }
+      return;
+    }
     if(btn.id==="miniIn"){mini.zoom=Math.min(3,mini.zoom*1.2);renderMini();return}
     if(btn.id==="miniOut"){mini.zoom=Math.max(.45,mini.zoom*.83);renderMini();return}
     if(btn.id==="miniReset"){mini.zoom=1;mini.panX=0;mini.panY=0;renderMini();return}
-    if(btn.id==="closeSystemMap"){ $("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide");return}
-    if(btn.id==="addPlanet"){
-      const n=s.planets.length+1;
-      s.planets.push({id:uid("p"),name:s.name+" "+n,population:"—",type:"Террестриальная",size:1,orbit:70+n*48,desc:"",fontSize:7});
-      save();openSystemMiniMap(s);notify("Планета добавлена");return;
-    }
-    if(btn.dataset.editPlanet){
-      const p=s.planets.find(x=>x.id===btn.dataset.editPlanet);if(p)editPlanet(p);return;
-    }
-    if(btn.id==="editPlanetNote"){
-      const note=$("#planetNote");
-      const selected=s.planets.find(p=>note?.dataset?.planetId===p.id);
-      if(selected)editPlanet(selected);
-      return;
-    }
   };
 
-  $$("#modalBody [data-edit-planet]").forEach(btn=>btn.onclick=e=>{e.stopPropagation();const p=s.planets.find(x=>x.id===btn.dataset.editPlanet);if(p)editPlanet(p);});
-  $("#addPlanet").onclick=()=>{const n=s.planets.length+1;s.planets.push({id:uid("p"),name:s.name+" "+n,population:"—",type:"Террестриальная",size:1,orbit:70+n*48,desc:""});save();openSystemMiniMap(s);notify("Планета добавлена");};
-  $("#closeSystemMap").onclick=()=>{$("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide")};
-  $("#miniIn").onclick=e=>{e.stopPropagation();mini.zoom=Math.min(3,mini.zoom*1.2);renderMini();};
-  $("#miniOut").onclick=e=>{e.stopPropagation();mini.zoom=Math.max(.45,mini.zoom*.83);renderMini();};
-  $("#miniReset").onclick=e=>{e.stopPropagation();mini.zoom=1;mini.panX=0;mini.panY=0;renderMini();};
-  $("#systemMap").addEventListener("mousedown",e=>{
-    if(e.button!==0||e.target.closest("button,.planet,.planet-item,.planet-note,.planet-editor"))return;
+  const map=mapEl();
+  map.addEventListener("mousedown",e=>{
+    if(e.button!==0)return;
+    const planetEl=e.target.closest(".planet");
+    if(!planetEl)return;
+    const p=planetAt(planetEl.dataset.planet);
+    if(!p)return;
+    e.preventDefault(); e.stopPropagation();
+    const rect=map.getBoundingClientRect();
+    const centerX=rect.width/2,centerY=rect.height/2;
+    mini.planetDrag={p,startX:e.clientX,startY:e.clientY};
+    const move=ev=>{
+      if(!mini.planetDrag)return;
+      const localX=(ev.clientX-rect.left-centerX-mini.panX)/mini.zoom;
+      const localY=(ev.clientY-rect.top-centerY-mini.panY)/mini.zoom;
+      const rr=Math.max(35,Math.min(360,Math.hypot(localX,localY)));
+      p.orbit=rr;
+      p.angle=Math.atan2(localY,localX);
+      renderWindow();
+      mini.planetDrag=null;
+      save();
+      notify("Орбита планеты сохранена");
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+    };
+    const up=()=>{
+      mini.planetDrag=null;
+      window.removeEventListener("mousemove",move);
+      window.removeEventListener("mouseup",up);
+    };
+    window.addEventListener("mousemove",move);
+    window.addEventListener("mouseup",up);
+  });
+
+  map.addEventListener("mousedown",e=>{
+    if(e.button!==0||e.target.closest(".planet,.planet-label,.planet-note,button,.planet-item,.planet-editor"))return;
     mini.drag=true;mini.lastX=e.clientX;mini.lastY=e.clientY;
     const move=ev=>{if(!mini.drag)return;mini.panX+=ev.clientX-mini.lastX;mini.panY+=ev.clientY-mini.lastY;mini.lastX=ev.clientX;mini.lastY=ev.clientY;renderMini();};
     const up=()=>{mini.drag=false;window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);};
     window.addEventListener("mousemove",move);window.addEventListener("mouseup",up);
   });
-  $("#systemMap").addEventListener("wheel",e=>{e.preventDefault();mini.zoom=Math.max(.45,Math.min(3,mini.zoom*(e.deltaY<0?1.12:.89)));renderMini();},{passive:false});
-  save();
+  map.addEventListener("wheel",e=>{
+    e.preventDefault();
+    mini.zoom=Math.max(.45,Math.min(3,mini.zoom*(e.deltaY<0?1.12:.89)));
+    renderMini();
+  },{passive:false});
 }
+
 function render(){
  data.systems.forEach(ensurePlanets);
  const obj=$("#objects");obj.innerHTML="";
- data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onclick=e=>{e.stopPropagation();if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool==="select"){state.selected={kind:"system",id:s.id};render()}};d.ondblclick=e=>{e.stopPropagation();if(state.tool==="select")selectObj("system",s.id)};obj.appendChild(d)});
+ data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onclick=e=>{e.stopPropagation();if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool==="select"){state.selected={kind:"system",id:s.id};showSystem(s);render()}};d.ondblclick=e=>{e.preventDefault();e.stopPropagation();if(state.tool==="select")openSystemMiniMap(s)};obj.appendChild(d)});
  data.battles.forEach(b=>{const d=document.createElement("div");d.className="battle";d.dataset.id=b.id;d.dataset.kind="battle";d.style.left=b.x+"px";d.style.top=b.y+"px";d.textContent="⚔";d.title=b.name;d.onclick=e=>{e.stopPropagation();selectObj("battle",b.id)};obj.appendChild(d)});
  renderLinks();renderFactions();updateStats();applyTransform();
 }
@@ -241,7 +346,7 @@ function renderFactions(){const el=$("#factionsList");el.innerHTML=data.factions
 function updateStats(){$("#stats").innerHTML=`Систем: <b>${data.systems.length}</b><br>Фракций: <b>${data.factions.length}</b><br>Битв: <b>${data.battles.length}</b><br>Связей: <b>${data.links.length}</b>`}
 function esc(v){return String(v??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
 function setTool(t){state.tool=t;$$(".tool[data-tool]").forEach(x=>x.classList.toggle("active",x.dataset.tool===t));notify(t==="select"?"Режим выбора":t==="system"?"Кликните по карте — создастся система":t==="battle"?"Кликните по карте — создастся место битвы":t==="faction"?"Откроется создание фракции":"Выберите две системы")}
-function selectObj(kind,id){state.selected={kind,id};if(kind==="system"){const s=data.systems.find(x=>x.id===id);showSystem(s);openSystemMiniMap(s)}if(kind==="battle")showBattle(data.battles.find(s=>s.id===id));if(kind==="faction")showFaction(data.factions.find(s=>s.id===id));render()}
+function selectObj(kind,id){state.selected={kind,id};if(kind==="system"){const s=data.systems.find(x=>x.id===id);showSystem(s)}if(kind==="battle")showBattle(data.battles.find(s=>s.id===id));if(kind==="faction")showFaction(data.factions.find(s=>s.id===id));render()}
 function showSystem(s){ensureSystemFont(s);const f=faction(s.faction);$("#inspector").innerHTML=`<div class="card"><div class="panel-title">ЗВЁЗДНАЯ СИСТЕМА</div><div style="font-size:14px;color:#d8bf82">${esc(s.name)}</div><div class="pill">${esc(TYPES[s.type]?.[0])}</div><div class="field"><label>Название</label><input id="iName" value="${esc(s.name)}"></div><div class="row"><div class="field"><label>Тип мира</label><select id="iType">${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${s.type===k?"selected":""}>${v[0]}</option>`).join("")}</select></div><div class="field"><label>Население</label><input id="iPop" value="${esc(s.population)}"></div></div><div class="row"><div class="field"><label>Размер на карте</label><input id="iSize" type="number" min=".55" max="3" step=".05" value="${s.size||1}"></div><div class="field"><label>Размер шрифта названия</label><input id="iFontSize" type="number" min="6" max="30" step="1" value="${s.fontSize||10}"></div></div><div class="row"><div class="field"><label>Фракция</label><select id="iFaction"><option value="">— не определена —</option>${data.factions.map(x=>`<option value="${x.id}" ${s.faction===x.id?"selected":""}>${esc(x.name)}</option>`).join("")}</select></div></div><div class="field"><label>Особенности</label><input id="iFeatures" value="${esc(s.features)}"></div><div class="field"><label>Описание</label><textarea id="iDesc">${esc(s.desc)}</textarea></div><label class="check"><input id="iMajor" type="checkbox" ${s.major?"checked":""}> Важная система</label><div class="actions"><button id="saveSystem">Сохранить</button><button class="danger" id="deleteSystem">Удалить систему</button></div></div>`;$("#saveSystem").onclick=()=>{Object.assign(s,{name:$("#iName").value,type:$("#iType").value,population:$("#iPop").value,size:+$("#iSize").value||1,fontSize:Math.max(6,Math.min(30,+$("#iFontSize").value||10)),faction:$("#iFaction").value,features:$("#iFeatures").value,desc:$("#iDesc").value,major:$("#iMajor").checked});save();render();showSystem(s);notify("Система обновлена")};$("#deleteSystem").onclick=()=>{if(confirm("Удалить систему?")){data.systems=data.systems.filter(x=>x.id!==s.id);data.links=data.links.filter(l=>!l.includes(s.id));state.selected=null;save();render();$("#inspector").innerHTML='<div class="empty">Система удалена.</div>'}}}
 function showBattle(b){$("#inspector").innerHTML=`<div class="card"><div class="panel-title">ХРОНИКА СРАЖЕНИЯ</div><div style="font-size:14px;color:#d8bf82">⚔ ${esc(b.name)}</div><div class="field"><label>Название</label><input id="bName" value="${esc(b.name)}"></div><div class="row"><div class="field"><label>Дата</label><input id="bDate" value="${esc(b.date)}"></div><div class="field"><label>Победитель</label><input id="bWinner" value="${esc(b.winner)}"></div></div><div class="field"><label>Силы сторон</label><input id="bForces" value="${esc(b.forces)}"></div><div class="field"><label>Описание</label><textarea id="bDesc">${esc(b.desc)}</textarea></div><div class="actions"><button id="saveBattle">Сохранить</button><button class="danger" id="deleteBattle">Удалить битву</button></div></div>`;$("#saveBattle").onclick=()=>{Object.assign(b,{name:$("#bName").value,date:$("#bDate").value,winner:$("#bWinner").value,forces:$("#bForces").value,desc:$("#bDesc").value});save();render();showBattle(b);notify("Хроника обновлена")};$("#deleteBattle").onclick=()=>{data.battles=data.battles.filter(x=>x.id!==b.id);state.selected=null;save();render();$("#inspector").innerHTML='<div class="empty">Место битвы удалено.</div>'}}
 function showFaction(f){$("#inspector").innerHTML=`<div class="card"><div class="panel-title">ФРАКЦИЯ</div><div style="font-size:14px;color:#d8bf82">⚑ ${esc(f.name)}</div><div class="field"><label>Название</label><input id="fName" value="${esc(f.name)}"></div><div class="field"><label>Цвет</label><input id="fColor" type="color" value="${f.color}"></div><div class="field"><label>Описание</label><textarea id="fDesc">${esc(f.desc)}</textarea></div><div class="actions"><button id="saveFaction">Сохранить</button><button class="danger" id="deleteFaction">Удалить</button></div></div>`;$("#saveFaction").onclick=()=>{Object.assign(f,{name:$("#fName").value,color:$("#fColor").value,desc:$("#fDesc").value});save();render();showFaction(f);notify("Фракция обновлена")};$("#deleteFaction").onclick=()=>deleteFaction(f.id)}
@@ -251,7 +356,7 @@ function openSystemModal(x,y){$("#modalBody").innerHTML=`<h2>Новая звёз
 function openBattleModal(x,y){$("#modalBody").innerHTML=`<h2>Новое сражение</h2><div class="sub">Место битвы будет отмечено на карте символом войны</div><div class="field"><label>Название</label><input id="mBName" value="Незначенное сражение"></div><div class="row"><div class="field"><label>Дата</label><input id="mBDate" value="014.M31"></div><div class="field"><label>Победитель</label><input id="mBWinner" value="Не определён"></div></div><div class="field"><label>Силы сторон</label><input id="mBForces" placeholder="Легион А против Легиона Б"></div><div class="field"><label>Описание</label><textarea id="mBDesc"></textarea></div><div class="actions"><button id="createB">Нанести битву</button></div></div>`;$("#modalBack").classList.add("open");$("#createB").onclick=()=>{const b={id:uid("b"),name:$("#mBName").value,date:$("#mBDate").value,winner:$("#mBWinner").value,forces:$("#mBForces").value,desc:$("#mBDesc").value,x,y};data.battles.push(b);save();$("#modalBack").classList.remove("open");render();selectObj("battle",b.id)}}
 function mapPoint(e){const world=$("#world"),r=world.getBoundingClientRect();return{x:(e.clientX-r.left)/state.zoom,y:(e.clientY-r.top)/state.zoom}}
 function handleLinkTarget(target){if(!state.pendingLink){state.pendingLink=target.id;notify("Теперь выберите вторую систему")}else if(state.pendingLink!==target.id){if(!data.links.some(l=>(l[0]===state.pendingLink&&l[1]===target.id)||(l[1]===state.pendingLink&&l[0]===target.id)))data.links.push([state.pendingLink,target.id]);state.pendingLink=null;save();render();notify("Связь создана")}}
-$("#map").addEventListener("click",e=>{if(state.drag)return;const p=mapPoint(e);if(state.tool==="system")openSystemModal(Math.max(20,Math.min(8980,p.x)),Math.max(20,Math.min(6820,p.y)));else if(state.tool==="battle")openBattleModal(p.x,p.y);else if(state.tool==="faction")openFactionModal();else if(state.tool==="link"){const target=data.systems.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<25);if(!target){notify("Для связи кликните по системе");return}handleLinkTarget(target)}});
+$("#map").addEventListener("click",e=>{if(state.drag||e.target.closest(".system,.battle"))return;const p=mapPoint(e);if(state.tool==="system")openSystemModal(Math.max(20,Math.min(8980,p.x)),Math.max(20,Math.min(6820,p.y)));else if(state.tool==="battle")openBattleModal(p.x,p.y);else if(state.tool==="faction")openFactionModal();else if(state.tool==="link"){const target=data.systems.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<25);if(!target){notify("Для связи кликните по системе");return}handleLinkTarget(target)}});
 $("#map").addEventListener("mousedown",e=>{if(e.button!==0)return;state.drag=false;state.lastX=e.clientX;state.lastY=e.clientY;const move=ev=>{const dx=ev.clientX-state.lastX,dy=ev.clientY-state.lastY;if(Math.abs(dx)+Math.abs(dy)>3)state.drag=true;state.panX+=dx;state.panY+=dy;state.lastX=ev.clientX;state.lastY=ev.clientY;applyTransform()};const up=()=>{window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);setTimeout(()=>{state.drag=false},0)};window.addEventListener("mousemove",move);window.addEventListener("mouseup",up)});
 $("#map").addEventListener("wheel",e=>{e.preventDefault();const old=state.zoom,stateNew=Math.max(.45,Math.min(2.3,old*(e.deltaY<0?1.12:.89)));const r=$("#map").getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;state.panX=mx-(mx-state.panX)*(stateNew/old);state.panY=my-(my-state.panY)*(stateNew/old);state.zoom=stateNew;applyTransform()},{passive:false});
 $$(".tool[data-tool]").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$("#closeModal").onclick=()=>{$("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide")};$("#modalBack").onclick=e=>{if(e.target.id==="modalBack"){e.currentTarget.classList.remove("open");$("#modalBack .modal").classList.remove("wide")}};
