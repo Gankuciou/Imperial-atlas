@@ -210,7 +210,7 @@ function openSystemMiniMap(s){
       }).join("")+
       "</div><div class=\"system-map-controls\"><button type=\"button\" id=\"miniIn\">＋</button><button type=\"button\" id=\"miniOut\">−</button><button type=\"button\" id=\"miniReset\">1:1</button></div>"+
       "<div class=\"planet-note\" id=\"planetNote\"><b>Выберите планету</b><span>Название · Население · Тип мира</span><p>Нажмите на планету на схеме или в списке ниже.</p></div></div>"+
-      "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+""><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button type=\"button\" data-action=\"edit-planet\" data-id=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
+      "<div class=\"planet-list\">"+planets.map(p=>"<div class=\"planet-item\" data-planet-item=\""+p.id+"\"><b>"+esc(p.name)+"</b><span>Население: "+esc(p.population||"—")+" · "+esc(p.type)+"</span><span>"+esc(p.desc||"Описание отсутствует.")+"</span><button type=\"button\" data-action=\"edit-planet\" data-id=\""+p.id+"\">Редактировать</button></div>").join("")+"</div>"+
       "<div id=\"planetEditor\"></div><div class=\"actions\"><button type=\"button\" data-action=\"add-planet\">Добавить планету</button><button type=\"button\" data-action=\"close-system\">Закрыть</button></div></div>";
     $("#modalBack .modal").classList.add("wide");
     $("#modalBack").classList.add("open");
@@ -293,28 +293,30 @@ function openSystemMiniMap(s){
     if(!planetEl)return;
     const p=planetAt(planetEl.dataset.planet);
     if(!p)return;
-    e.preventDefault(); e.stopPropagation();
+    e.preventDefault();e.stopPropagation();
+
     const rect=map.getBoundingClientRect();
     const centerX=rect.width/2,centerY=rect.height/2;
-    mini.planetDrag={p,startX:e.clientX,startY:e.clientY};
+    const id=p.id;
     const move=ev=>{
-      if(!mini.planetDrag)return;
       const localX=(ev.clientX-rect.left-centerX-mini.panX)/mini.zoom;
       const localY=(ev.clientY-rect.top-centerY-mini.panY)/mini.zoom;
-      const rr=Math.max(35,Math.min(360,Math.hypot(localX,localY)));
-      p.orbit=rr;
+      p.orbit=Math.max(35,Math.min(360,Math.hypot(localX,localY)));
       p.angle=Math.atan2(localY,localX);
-      renderWindow();
-      mini.planetDrag=null;
-      save();
-      notify("Орбита планеты сохранена");
-      window.removeEventListener("mousemove",move);
-      window.removeEventListener("mouseup",up);
+
+      const x=Math.cos(p.angle)*p.orbit;
+      const y=Math.sin(p.angle)*p.orbit;
+      const size=12*(Number(p.size)||1);
+      const el=map.querySelector(".planet[data-planet='"+id+"']");
+      if(el){el.style.marginLeft=x+"px";el.style.marginTop=y+"px";}
+      const label=el?.nextElementSibling;
+      if(label){label.style.marginLeft=(x+size/2+7)+"px";label.style.marginTop=(y-size/2)+"px";}
     };
     const up=()=>{
-      mini.planetDrag=null;
       window.removeEventListener("mousemove",move);
       window.removeEventListener("mouseup",up);
+      save();
+      notify("Положение планеты сохранено");
     };
     window.addEventListener("mousemove",move);
     window.addEventListener("mouseup",up);
@@ -337,7 +339,7 @@ function openSystemMiniMap(s){
 function render(){
  data.systems.forEach(ensurePlanets);
  const obj=$("#objects");obj.innerHTML="";
- data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onclick=e=>{e.stopPropagation();if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool==="select"){state.selected={kind:"system",id:s.id};showSystem(s);render()}};d.ondblclick=e=>{e.preventDefault();e.stopPropagation();if(state.tool==="select")openSystemMiniMap(s)};obj.appendChild(d)});
+ data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onclick=e=>{e.stopPropagation();if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool!=="select")return;clearTimeout(d._clickTimer);d._clickTimer=setTimeout(()=>{state.selected={kind:"system",id:s.id};showSystem(s);render()},230)};d.ondblclick=e=>{e.preventDefault();e.stopPropagation();clearTimeout(d._clickTimer);if(state.tool==="select"){state.selected={kind:"system",id:s.id};showSystem(s);openSystemMiniMap(s);render()}};obj.appendChild(d)});
  data.battles.forEach(b=>{const d=document.createElement("div");d.className="battle";d.dataset.id=b.id;d.dataset.kind="battle";d.style.left=b.x+"px";d.style.top=b.y+"px";d.textContent="⚔";d.title=b.name;d.onclick=e=>{e.stopPropagation();selectObj("battle",b.id)};obj.appendChild(d)});
  renderLinks();renderFactions();updateStats();applyTransform();
 }
