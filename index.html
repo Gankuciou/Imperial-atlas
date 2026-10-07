@@ -329,10 +329,20 @@ let data;
 if(localStorage.getItem("imperialAtlasLegionsVersion")!==String(LEGION_ATLAS_VERSION)){
   data=buildLegionAtlas();
   localStorage.setItem("imperialAtlasLegionsVersion",String(LEGION_ATLAS_VERSION));
-  // Новая раскладка уже рассчитана для карты 9000×6840 — не применять старый коэффициент масштабирования.
+  // Новая раскладка уже рассчитана для карты 4500×3420 — не применять старый коэффициент масштабирования.
   localStorage.setItem("imperialAtlasMapScale","5");
   localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
-}else data=JSON.parse(localStorage.getItem("imperialAtlasV2")||"null")||buildLegionAtlas();
+}else{
+  try{
+    data=JSON.parse(localStorage.getItem("imperialAtlasV2")||"null");
+  }catch(e){
+    data=null;
+  }
+  if(!data||!Array.isArray(data.systems)||!data.systems.length||!Array.isArray(data.factions)||!Array.isArray(data.battles)||!Array.isArray(data.links)){
+    data=buildLegionAtlas();
+    localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
+  }
+}
 const MAP_SCALE_VERSION=5;
 const savedScale=Number(localStorage.getItem("imperialAtlasMapScale")||0);
 if(savedScale<MAP_SCALE_VERSION){
