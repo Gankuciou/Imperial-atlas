@@ -27,7 +27,7 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .map:active{cursor:grabbing}.map:after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 35%,rgba(0,0,0,.65) 100%),linear-gradient(115deg,rgba(112,87,57,.08),transparent 45%)}
 .stars{position:absolute;inset:-100px;background-image:radial-gradient(#a99c7c .7px,transparent .8px),radial-gradient(#8b9290 .45px,transparent .6px);background-size:91px 83px,47px 61px;background-position:4px 7px,23px 14px;opacity:.55}
 .grid{position:absolute;inset:-50%;background-image:linear-gradient(rgba(125,106,70,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(125,106,70,.05) 1px,transparent 1px);background-size:100px 100px;transform:rotate(9deg)}
-#world{position:absolute;left:0;top:0;width:9000px;height:6840px;transform-origin:0 0}
+#world{position:absolute;left:0;top:0;width:4500px;height:3420px;transform-origin:0 0}
 .region{position:absolute;opacity:.34;border:1px solid #7c6948;filter:drop-shadow(0 0 10px rgba(0,0,0,.4));transform:scale(3);transform-origin:0 0}
 .r1{left:60px;top:135px;width:390px;height:260px;background:#314750;clip-path:polygon(0 0,78% 4%,100% 42%,81% 100%,0 87%)}.r2{left:1050px;top:0;width:330px;height:310px;background:#55344d;clip-path:polygon(12% 0,100% 4%,83% 85%,53% 100%,0 60%)}.r3{left:1860px;top:90px;width:380px;height:360px;background:#56322f;clip-path:polygon(4% 0,100% 4%,100% 85%,54% 100%,0 60%)}.r4{left:360px;top:930px;width:420px;height:370px;background:#554d2d;clip-path:polygon(0 12%,55% 0,100% 28%,79% 100%,15% 90%)}.r5{left:1500px;top:1050px;width:500px;height:410px;background:#234556;clip-path:polygon(0 0,65% 7%,100% 38%,87% 100%,35% 96%)}.r6{left:0;top:1680px;width:480px;height:220px;background:#3d303b;clip-path:polygon(0 0,70% 10%,100% 100%,0 100%)}
 .hud{position:absolute;z-index:4;left:16px;top:13px;font-size:8px;color:#7b715e;letter-spacing:1.6px}.zoom{position:absolute;z-index:8;right:14px;bottom:14px;display:flex;gap:5px}.zoom button,.mini{background:#111515;border:1px solid #554832;color:#a99772;padding:7px 10px}.zoom button:hover,.mini:hover{border-color:#9c7e4d;color:#e1c58a}
@@ -121,7 +121,7 @@ battles:[
 ],
 links:[["s1","s2"],["s2","s3"],["s3","s6"],["s6","s7"],["s7","s8"],["s8","s9"],["s3","s7"],["s2","s4"]]
 };
-const LEGION_ATLAS_VERSION=3;
+const LEGION_ATLAS_VERSION=4;
 const LEGION_DEFINITIONS=[
 {id:"fDA",name:"I легион — Тёмные Ангелы",color:"#60727a",count:10,home:"Калибан",systems:["Калибан","Пердитус","Сарош","Карксаран","Тиамат","Трамас"]},
 {id:"fEC",name:"III легион — Дети Императора",color:"#a04d79",count:6,home:"Хемос",systems:["Хемос","Лаэран","Калийские Врата","Экспедиция Феникс"]},
@@ -145,11 +145,11 @@ const LEGION_DEFINITIONS=[
 // Кластеры разложены вокруг Солнечного домена не по сетке, а по рыхлой спиральной дуге.
 // Координаты намеренно неровные: это астрографическая схема, а не математическая решётка.
 const LEGION_CENTERS=[
-  [2900,1500],[3700,1100],[4700,1200],[5700,1450],
-  [2350,2400],[3200,2250],[5650,2250],[6500,2850],
-  [2150,3700],[3050,3500],[6400,3800],[7000,4550],
-  [5500,4650],[4450,5350],[3350,5050],[2400,5450],
-  [4700,6150],[6200,5650]
+  [1450,750],[1850,550],[2350,600],[2850,725],
+  [1175,1200],[1600,1125],[2825,1125],[3250,1425],
+  [1075,1850],[1525,1750],[3200,1900],[3500,2275],
+  [2750,2325],[2225,2675],[1675,2525],[1200,2725],
+  [2350,3075],[3100,2825]
 ];
 const CANON_PLANETS={
 "Калибан":["Калибан"],"Хемос":["Хемос"],"Олимпия":["Олимпия"],"Чогорис":["Чогорис"],"Фенрис":["Фенрис"],
@@ -167,6 +167,34 @@ const CANON_PLANETS={
 const EMPEROR_NAMES=["Терра","Марс","Луна","Меркурий","Венера","Юпитер","Сатурн","Уран","Нептун","Плутон","Ио","Европа","Ганимед","Каллисто","Титан","Энцелад","Тритон","Церера","Веста","Молния"];
 const EMPEROR_PLANETS={"Терра":["Терра","Луна"],"Марс":["Марс","Фобос","Деймос"],"Луна":["Луна"],"Юпитер":["Юпитер","Ио","Европа","Ганимед","Каллисто"],"Сатурн":["Сатурн","Титан","Энцелад"],"Уран":["Уран","Титания","Оберон","Ариэль","Умбриэль","Миранда"],"Нептун":["Нептун","Тритон"],"Плутон":["Плутон","Харон"]};
 const LEGION_PLANET_TYPES=["Террестриальная","Газовый гигант","Ледяная","Океаническая","Пустынная","Мёртвая","Джунглевая","Кузнечная"];
+const LEGION_EXTRA_WORLDS={
+fDA:["Калибанский Рубеж","Зелёный Оплот","Лунный Дозор"],
+fEC:["Фениксова Гавань","Аметистовый Предел","Сад Совершенства"],
+fIW:["Олимпийский Рубеж","Железный Бастион","Кузня Фесписа"],
+fWS:["Небесный Табор","Степной Рубеж","Чёрный Караван"],
+fSW:["Фенрисский Щит","Морозный Клин","Волчий Дозор"],
+fIF:["Инвитский Рубеж","Крепость Дорна","Золотой Бастион"],
+fNL:["Нострамский Предел","Тёмный Форпост","Путь Слёз"],
+fBA:["Кровавый Оплот","Сангвиний Предел","Алая Гавань"],
+fIH:["Медузий Рубеж","Железный Ковчег","Клановый Бастион"],
+fWE:["Красная Арена","Нуцерийский Рубеж","Кровавый Клин"],
+fUM:["Макраггский Рубеж","Аврелиев Оплот","Синий Бастион"],
+fDG:["Барбарский Рубеж","Морозная Цитадель","Токсичный Оплот"],
+fTS:["Просперский Рубеж","Александрийский Шпиль","Аметистовая Цитадель"],
+fSOH:["Ктонийский Рубеж","Глаз Хоруса","Чёрный Триумф"],
+fWB:["Колхидский Рубеж","Слово и Пламя","Священный Предел"],
+fSAL:["Прометеев Рубеж","Огненная Цитадель","Вулканический Оплот"],
+fRG:["Деливерансский Рубеж","Воронья Тень","Скрытая Крепость"],
+fAL:["Омега-Рубеж","Гидрова Тень","Зеркальный Оплот"]
+};
+function addExtraLegionWorlds(s,legionId){
+  const names=LEGION_EXTRA_WORLDS[legionId]||[];
+  names.forEach((name,i)=>{
+    if(s.planets.some(p=>p.name===name))return;
+    const j=s.planets.length;
+    s.planets.push({id:uid("p"),name,population:"—",type:LEGION_PLANET_TYPES[(j+i)%LEGION_PLANET_TYPES.length],size:.68+(i%3)*.12,orbit:70+j*48,desc:"Атласный мир легионной зоны. Название создано для карты и не является утверждением канона.",angle:(j/s.planets.length)*Math.PI*2-.8});
+  });
+}
 function buildLegionPlanets(name){
   const known=CANON_PLANETS[name];
   const names=known||[name,name+" Primus",name+" Secundus"];
@@ -190,11 +218,11 @@ function buildLegionAtlas(){
       const x=cx+Math.cos(angle)*radius+jitterX;
       const y=cy+Math.sin(angle)*radius+jitterY;
       const home=name===d.home;
-      const s={id:d.id+"_"+(i+1),name,type:home?"civilized":"colony",population:"—",size:home?1.35:.9+(i%3)*.08,desc:home?"Канонический родной мир легиона.":"Система легионной зоны ответственности.",features:home?"РОДНОЙ МИР · КАНОН":"Легионная система",faction:d.id,x,y,major:home,fontSize:home?11:9,planets:buildLegionPlanets(name)};
+      const s={id:d.id+"_"+(i+1),name,type:home?"civilized":"colony",population:"—",size:home?1.35:.9+(i%3)*.08,desc:home?"Канонический родной мир легиона.":"Система легионной зоны ответственности.",features:home?"РОДНОЙ МИР · КАНОН":"Легионная система",faction:d.id,x,y,major:home,fontSize:home?11:9,planets:buildLegionPlanets(name)}; if(home)addExtraLegionWorlds(s,d.id);
       systems.push(s); if(i>0) links.push([d.id+"_"+i,s.id]);
     });
   });
-  const ex=[4500,3420];
+  const ex=[2250,1710];
   EMPEROR_NAMES.forEach((name,i)=>{
     const a=(i/20)*Math.PI*2,rr=260+(i%4)*90;
     const x=ex[0]+Math.cos(a)*rr,y=ex[1]+Math.sin(a)*rr;
@@ -209,10 +237,10 @@ if(localStorage.getItem("imperialAtlasLegionsVersion")!==String(LEGION_ATLAS_VER
   data=buildLegionAtlas();
   localStorage.setItem("imperialAtlasLegionsVersion",String(LEGION_ATLAS_VERSION));
   // Новая раскладка уже рассчитана для карты 9000×6840 — не применять старый коэффициент масштабирования.
-  localStorage.setItem("imperialAtlasMapScale","4");
+  localStorage.setItem("imperialAtlasMapScale","5");
   localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
 }else data=JSON.parse(localStorage.getItem("imperialAtlasV2")||"null")||buildLegionAtlas();
-const MAP_SCALE_VERSION=4;
+const MAP_SCALE_VERSION=5;
 const savedScale=Number(localStorage.getItem("imperialAtlasMapScale")||0);
 if(savedScale<MAP_SCALE_VERSION){
   const factor=savedScale>=3?3:9;
@@ -429,7 +457,7 @@ function openSystemMiniMap(s){
 function render(){
  data.systems.forEach(ensurePlanets);
  const obj=$("#objects");obj.innerHTML="";
- data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onmousedown=e=>{if(e.button!==0||state.tool!=="select")return;e.preventDefault();e.stopPropagation();let moved=false,lastX=e.clientX,lastY=e.clientY;const move=ev=>{const dx=ev.clientX-lastX,dy=ev.clientY-lastY;if(!moved&&Math.abs(dx)+Math.abs(dy)<3)return;moved=true;clearTimeout(d._clickTimer);s.x+=dx/state.zoom;s.y+=dy/state.zoom;s.x=Math.max(20,Math.min(8980,s.x));s.y=Math.max(20,Math.min(6820,s.y));d.style.left=s.x+"px";d.style.top=s.y+"px";lastX=ev.clientX;lastY=ev.clientY};const up=()=>{window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);if(moved){d._dragged=true;state.selected={kind:"system",id:s.id};save();notify("Положение системы сохранено");render();setTimeout(()=>{d._dragged=false},0)}};window.addEventListener("mousemove",move);window.addEventListener("mouseup",up)};d.onclick=e=>{e.stopPropagation();if(d._dragged){d._dragged=false;return}if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool!=="select")return;clearTimeout(d._clickTimer);d._clickTimer=setTimeout(()=>{state.selected={kind:"system",id:s.id};showSystem(s);render()},230)};d.ondblclick=e=>{e.preventDefault();e.stopPropagation();clearTimeout(d._clickTimer);if(state.tool==="select"){state.selected={kind:"system",id:s.id};showSystem(s);openSystemMiniMap(s);render()}};obj.appendChild(d)});
+ data.systems.forEach(s=>{const f=faction(s.faction), d=document.createElement("div");d.className=`system ${TYPES[s.type]?.[1]||"a-type"} ${s.major?"major":""} ${state.selected?.id===s.id?"selected":""}`;d.dataset.id=s.id;d.dataset.kind="system";d.style.left=s.x+"px";d.style.top=s.y+"px";d.style.color=f?.color||"#b6a16a";d.style.setProperty("--ss",Math.max(.55,Math.min(3,Number(s.size)||1)));d.style.setProperty("--system-font-size",(Number(s.fontSize)||10)+"px");d.style.setProperty("--system-kind-size",Math.max(6,(Number(s.fontSize)||10)*.7)+"px");d.innerHTML=`<div class="sigil"></div><div class="name">${esc(s.name)}</div><div class="kind">${esc(TYPES[s.type]?.[0]||s.type)}</div>`;d.onmousedown=e=>{if(e.button!==0||state.tool!=="select")return;e.preventDefault();e.stopPropagation();let moved=false,lastX=e.clientX,lastY=e.clientY;const move=ev=>{const dx=ev.clientX-lastX,dy=ev.clientY-lastY;if(!moved&&Math.abs(dx)+Math.abs(dy)<3)return;moved=true;clearTimeout(d._clickTimer);s.x+=dx/state.zoom;s.y+=dy/state.zoom;s.x=Math.max(20,Math.min(4480,s.x));s.y=Math.max(20,Math.min(3400,s.y));d.style.left=s.x+"px";d.style.top=s.y+"px";lastX=ev.clientX;lastY=ev.clientY};const up=()=>{window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);if(moved){d._dragged=true;state.selected={kind:"system",id:s.id};save();notify("Положение системы сохранено");render();setTimeout(()=>{d._dragged=false},0)}};window.addEventListener("mousemove",move);window.addEventListener("mouseup",up)};d.onclick=e=>{e.stopPropagation();if(d._dragged){d._dragged=false;return}if(state.tool==="link"){handleLinkTarget(s);return}if(state.tool!=="select")return;clearTimeout(d._clickTimer);d._clickTimer=setTimeout(()=>{state.selected={kind:"system",id:s.id};showSystem(s);render()},230)};d.ondblclick=e=>{e.preventDefault();e.stopPropagation();clearTimeout(d._clickTimer);if(state.tool==="select"){state.selected={kind:"system",id:s.id};showSystem(s);openSystemMiniMap(s);render()}};obj.appendChild(d)});
  data.battles.forEach(b=>{const d=document.createElement("div");d.className="battle";d.dataset.id=b.id;d.dataset.kind="battle";d.style.left=b.x+"px";d.style.top=b.y+"px";d.textContent="⚔";d.title=b.name;d.onclick=e=>{e.stopPropagation();selectObj("battle",b.id)};obj.appendChild(d)});
  renderLinks();renderFactions();updateStats();applyTransform();
 }
