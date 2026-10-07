@@ -59,7 +59,39 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .panel-title{font-size:10px;color:var(--gold);letter-spacing:1.2px;margin:0 0 11px}.card{background:#0e1110;border:1px solid #423829;padding:11px;margin-bottom:10px}.field{margin:7px 0}.field label{display:block;color:#817865;font-size:8px;margin-bottom:4px}.field input,.field select,.field textarea{width:100%;background:#080a0a;border:1px solid #453a2b;padding:7px;font-size:9px;outline:none}.field input:focus,.field textarea:focus,.field select:focus{border-color:#91764a}.field textarea{min-height:68px;resize:vertical}.row{display:grid;grid-template-columns:1fr 1fr;gap:7px}.actions{display:flex;gap:6px;margin-top:9px;position:relative;z-index:20;pointer-events:auto}.actions button{flex:1;background:#191a18;border:1px solid #55452f;padding:7px;font-size:8px;color:#bbaa83}.actions .danger{border-color:#63352e;color:#c08373}.pill{display:inline-block;padding:3px 6px;border:1px solid #554631;font-size:7px;color:#9d8e6d;margin:2px}
 .list{max-height:185px;overflow:auto}.list-item{display:flex;justify-content:space-between;align-items:center;padding:7px 5px;border-bottom:1px solid #28261f;font-size:8px}.list-item button{background:none;border:0;color:#806d55}.empty{font-size:8px;color:#625b4e;line-height:1.6}
 .modal-back{position:fixed;z-index:50;inset:0;background:#000b;display:none;align-items:center;justify-content:center}.modal-back.open{display:flex}.modal{width:min(610px,92vw);max-height:88vh;overflow:auto;background:linear-gradient(#171817,#0c0e0d);border:1px solid #725d3b;box-shadow:0 18px 80px #000;padding:17px}.modal h2{margin:0;color:#d6bc80;font-size:17px;letter-spacing:1px}.modal .sub{font-size:8px;color:#746a57;margin:4px 0 14px}.close{float:right;background:none;border:0;color:#9b896a;font-size:18px}.notice{position:absolute;z-index:20;left:50%;top:20px;transform:translateX(-50%);background:#171813;border:1px solid #735d3a;padding:8px 14px;font-size:8px;color:#c5b184;opacity:0;pointer-events:none;transition:.2s}.notice.show{opacity:1}
-@media(max-width:900px){.app{grid-template-columns:190px 1fr}.right{display:none}.brand small{display:none}}
+/* Планшеты: карта получает максимум площади, панели не перекрывают обзор. */
+@media (max-width:1100px){
+  .app{grid-template-rows:50px 1fr;grid-template-columns:165px 1fr}
+  header{grid-column:1/3;padding:7px 12px}
+  .right{display:none}
+  .side{padding:10px 8px}
+  .section-title{font-size:9px;margin:5px 0 7px}
+  .tool{padding:9px 7px;margin:4px 0}
+  .tool span{font-size:8px}
+  .brand{font-size:14px}
+  .status{font-size:8px}
+  .zoom{right:10px;bottom:10px}
+  .zoom button{min-width:42px;min-height:38px;font-size:16px}
+  .hud{left:10px;top:10px;font-size:7px}
+  .system{min-width:58px}
+  .system .name{font-size:calc(var(--system-font-size,9px) * var(--map-text-scale,1))}
+  .system.major .name{font-size:calc(var(--system-font-size,11px) * var(--map-text-scale,1))}
+  .system .kind{font-size:calc(var(--system-kind-size,8px) * var(--map-text-scale,1))}
+  .map,.system-map{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+}
+@media (max-width:700px){
+  .app{grid-template-columns:1fr;grid-template-rows:46px 1fr}
+  header{grid-column:1}
+  .side{display:none}
+  .brand{font-size:12px;letter-spacing:1.3px}
+  .brand small,.status{display:none}
+  .zoom{bottom:8px;right:8px}
+  .zoom button{min-width:46px;min-height:42px}
+  .system-map{height:58vh;min-height:330px}
+  .planet-list{grid-template-columns:1fr}
+  .modal{width:96vw;max-height:92vh;padding:12px}
+  .modal h2{font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -500,6 +532,47 @@ function openSystemModal(x,y){$("#modalBody").innerHTML=`<h2>Новая звёз
 function openBattleModal(x,y){$("#modalBody").innerHTML=`<h2>Новое сражение</h2><div class="sub">Место битвы будет отмечено на карте символом войны</div><div class="field"><label>Название</label><input id="mBName" value="Незначенное сражение"></div><div class="row"><div class="field"><label>Дата</label><input id="mBDate" value="014.M31"></div><div class="field"><label>Победитель</label><input id="mBWinner" value="Не определён"></div></div><div class="field"><label>Силы сторон</label><input id="mBForces" placeholder="Легион А против Легиона Б"></div><div class="field"><label>Описание</label><textarea id="mBDesc"></textarea></div><div class="actions"><button id="createB">Нанести битву</button></div></div>`;$("#modalBack").classList.add("open");$("#createB").onclick=()=>{const b={id:uid("b"),name:$("#mBName").value,date:$("#mBDate").value,winner:$("#mBWinner").value,forces:$("#mBForces").value,desc:$("#mBDesc").value,x,y};data.battles.push(b);save();$("#modalBack").classList.remove("open");render();selectObj("battle",b.id)}}
 function mapPoint(e){const world=$("#world"),r=world.getBoundingClientRect();return{x:(e.clientX-r.left)/state.zoom,y:(e.clientY-r.top)/state.zoom}}
 function handleLinkTarget(target){if(!state.pendingLink){state.pendingLink=target.id;notify("Теперь выберите вторую систему")}else if(state.pendingLink!==target.id){if(!data.links.some(l=>(l[0]===state.pendingLink&&l[1]===target.id)||(l[1]===state.pendingLink&&l[0]===target.id)))data.links.push([state.pendingLink,target.id]);state.pendingLink=null;save();render();notify("Связь создана")}}
+
+// Сенсорная навигация карты: один палец — панорамирование, два — pinch-to-zoom.
+(()=>{
+  const map=$("#map");
+  let t1=null,t2=null,pinchStart=0,pinchZoom=1;
+  const dist=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+  map.addEventListener("touchstart",e=>{
+    if(e.target.closest(".system,.battle,.zoom,.tool"))return;
+    if(e.touches.length===1){
+      t1={x:e.touches[0].clientX,y:e.touches[0].clientY};
+      t2=null;
+    }else if(e.touches.length>=2){
+      t1={x:e.touches[0].clientX,y:e.touches[0].clientY};
+      t2={x:e.touches[1].clientX,y:e.touches[1].clientY};
+      pinchStart=dist(e.touches[0],e.touches[1]);pinchZoom=state.zoom;
+    }
+    e.preventDefault();
+  },{passive:false});
+  map.addEventListener("touchmove",e=>{
+    if(e.target.closest(".system,.battle,.zoom,.tool"))return;
+    if(e.touches.length>=2){
+      const a=e.touches[0],b=e.touches[1],d=dist(a,b);
+      if(pinchStart){
+        const nz=Math.max(.45,Math.min(2.3,pinchZoom*d/pinchStart));
+        const r=map.getBoundingClientRect(),mx=(a.clientX+b.clientX)/2-r.left,my=(a.clientY+b.clientY)/2-r.top;
+        state.panX=mx-(mx-state.panX)*(nz/state.zoom);
+        state.panY=my-(my-state.panY)*(nz/state.zoom);
+        state.zoom=nz;applyTransform();
+      }
+    }else if(e.touches.length===1&&t1){
+      const t=e.touches[0],dx=t.clientX-t1.x,dy=t.clientY-t1.y;
+      state.panX+=dx;state.panY+=dy;applyTransform();
+      t1={x:t.clientX,y:t.clientY};
+    }
+    e.preventDefault();
+  },{passive:false});
+  map.addEventListener("touchend",e=>{
+    if(e.touches.length<2)pinchStart=0;
+    if(e.touches.length===0){t1=null;t2=null;}
+  },{passive:false});
+})();
 $("#map").addEventListener("click",e=>{if(state.drag||e.target.closest(".system,.battle"))return;const p=mapPoint(e);if(state.tool==="system")openSystemModal(Math.max(20,Math.min(4480,p.x)),Math.max(20,Math.min(3400,p.y)));else if(state.tool==="battle")openBattleModal(p.x,p.y);else if(state.tool==="faction")openFactionModal();else if(state.tool==="link"){const target=data.systems.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<25);if(!target){notify("Для связи кликните по системе");return}handleLinkTarget(target)}});
 $("#map").addEventListener("mousedown",e=>{if(e.button!==0||e.target.closest(".system,.battle"))return;state.drag=false;state.lastX=e.clientX;state.lastY=e.clientY;const move=ev=>{const dx=ev.clientX-state.lastX,dy=ev.clientY-state.lastY;if(Math.abs(dx)+Math.abs(dy)>3)state.drag=true;state.panX+=dx;state.panY+=dy;state.lastX=ev.clientX;state.lastY=ev.clientY;applyTransform()};const up=()=>{window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);setTimeout(()=>{state.drag=false},0)};window.addEventListener("mousemove",move);window.addEventListener("mouseup",up)});
 $("#map").addEventListener("wheel",e=>{e.preventDefault();const old=state.zoom,stateNew=Math.max(.45,Math.min(2.3,old*(e.deltaY<0?1.12:.89)));const r=$("#map").getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;state.panX=mx-(mx-state.panX)*(stateNew/old);state.panY=my-(my-state.panY)*(stateNew/old);state.zoom=stateNew;applyTransform()},{passive:false});
