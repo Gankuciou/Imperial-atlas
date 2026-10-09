@@ -160,7 +160,7 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 <aside class="side right"><div class="section-title">Инспектор</div><div id="inspector"><div class="empty">Выберите систему, фракцию или битву на карте.<br><br>Инструмент слева позволяет размещать новые объекты кликом по карте.</div></div><div class="section-title">Фракции</div><div class="list" id="factionsList"></div></aside>
 </div>
 <div class="modal-back" id="modalBack"><div class="modal"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
-<script>
+<script src="atlas-data.js"></script>\n<script>
 const TYPES={
  hive:["Мир-улей","h-type"],ocean:["Океанический мир","o-type"],forge:["Кузнечный мир","s-type"],agri:["Агромир","j-type"],death:["Мёртвый мир","d-type"],ice:["Ледяной мир","o-type"],jungle:["Джунглевый мир","j-type"],desert:["Пустынный мир","a-type"],fortress:["Крепость-мир","f-type"],daemon:["Демонический мир","x-type"],mining:["Шахтёрский мир","s-type"],civilized:["Имперский мир","a-type"],colony:["Колониальный мир","s-type"],sepulchre:["Мир-усыпальница","x-type"],shrine:["Священный мир","a-type"],military:["Военный мир","h-type"]
 };
@@ -325,11 +325,12 @@ function buildLegionAtlas(){
   });
   return {systems,factions,battles:[],links};
 }
+const ATLAS_DATA_VERSION="1";
 let data;
-if(localStorage.getItem("imperialAtlasLegionsVersion")!==String(LEGION_ATLAS_VERSION)){
-  data=buildLegionAtlas();
-  localStorage.setItem("imperialAtlasLegionsVersion",String(LEGION_ATLAS_VERSION));
-  // Новая раскладка уже рассчитана для карты 4500×3420 — не применять старый коэффициент масштабирования.
+const seedValid=window.IMPERIAL_ATLAS_SEED&&Array.isArray(window.IMPERIAL_ATLAS_SEED.systems)&&window.IMPERIAL_ATLAS_SEED.systems.length;
+if(seedValid&&localStorage.getItem("imperialAtlasSeedVersion")!==ATLAS_DATA_VERSION){
+  data=JSON.parse(JSON.stringify(window.IMPERIAL_ATLAS_SEED));
+  localStorage.setItem("imperialAtlasSeedVersion",ATLAS_DATA_VERSION);
   localStorage.setItem("imperialAtlasMapScale","5");
   localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
 }else{
@@ -339,7 +340,8 @@ if(localStorage.getItem("imperialAtlasLegionsVersion")!==String(LEGION_ATLAS_VER
     data=null;
   }
   if(!data||!Array.isArray(data.systems)||!data.systems.length||!Array.isArray(data.factions)||!Array.isArray(data.battles)||!Array.isArray(data.links)){
-    data=buildLegionAtlas();
+    data=seedValid?JSON.parse(JSON.stringify(window.IMPERIAL_ATLAS_SEED)):buildLegionAtlas();
+    localStorage.setItem("imperialAtlasMapScale","5");
     localStorage.setItem("imperialAtlasV2",JSON.stringify(data));
   }
 }
