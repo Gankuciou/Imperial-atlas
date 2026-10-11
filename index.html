@@ -162,6 +162,26 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
 .planet-surface-modal .field textarea{min-height:58px}
 @media(max-width:700px){.surface-legend{font-size:11px;line-height:1.5}.planet-surface-modal .field label{font-size:11px}.planet-surface-modal .field textarea{font-size:14px;min-height:70px}}
 
+
+/* Читаемый размер текста в инспекторе и списке фракций на всех экранах */
+#inspector .panel-title,.right .section-title{font-size:14px!important;line-height:1.5!important}
+#inspector .card>div[style*="font-size:14px"]{font-size:19px!important;line-height:1.5!important}
+#inspector .field label{font-size:12px!important;line-height:1.6!important;margin-bottom:6px!important}
+#inspector .field input,#inspector .field select,#inspector .field textarea{font-size:15px!important;line-height:1.5!important;padding:10px!important;min-height:42px}
+#inspector .field textarea{min-height:100px}
+#inspector .pill{font-size:11px!important;padding:5px 8px!important}
+#inspector .check{font-size:13px!important;line-height:1.6!important}
+#inspector .actions button{font-size:12px!important;line-height:1.5!important;min-height:42px;padding:9px!important}
+#factionsList .list-item{font-size:13px!important;line-height:1.6!important;padding:10px 7px!important}
+#factionsList .list-item button{font-size:18px!important;padding:0 5px!important}
+#factionsList .empty,#inspector .empty{font-size:13px!important;line-height:1.7!important}
+@media(max-width:700px){
+ #inspector .panel-title,.right .section-title{font-size:15px!important}
+ #inspector .field label{font-size:13px!important}
+ #inspector .field input,#inspector .field select,#inspector .field textarea{font-size:16px!important;min-height:46px}
+ #factionsList .list-item{font-size:14px!important;padding:12px 7px!important}
+}
+
 </style>
 </head>
 <body>
