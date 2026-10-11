@@ -182,6 +182,25 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
  #factionsList .list-item{font-size:14px!important;padding:12px 7px!important}
 }
 
+
+/* Крупнее текст в полях «Особенности» и «Описание» звёздной системы */
+#inspector #iFeatures,
+#inspector #iDesc {
+  font-size: 18px !important;
+  line-height: 1.65 !important;
+  padding: 12px !important;
+}
+#inspector #iFeatures { min-height: 52px !important; }
+#inspector #iDesc { min-height: 150px !important; }
+@media (max-width:700px) {
+  #inspector #iFeatures,
+  #inspector #iDesc {
+    font-size: 18px !important;
+    line-height: 1.7 !important;
+  }
+  #inspector #iDesc { min-height: 180px !important; }
+}
+
 </style>
 </head>
 <body>
