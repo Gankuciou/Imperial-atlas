@@ -201,6 +201,40 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
   #inspector #iDesc { min-height: 180px !important; }
 }
 
+
+/* Усиленное увеличение именно длинных текстов: описание планеты и особенности мира */
+#inspector textarea#iDesc,
+#inspector input#iFeatures,
+textarea#pDesc,
+#planetNote p,
+.planet-item span {
+  font-size: 20px !important;
+  line-height: 1.75 !important;
+}
+#inspector textarea#iDesc,
+textarea#pDesc {
+  min-height: 190px !important;
+  padding: 14px !important;
+}
+#inspector input#iFeatures {
+  min-height: 58px !important;
+  padding: 12px !important;
+}
+.planet-note p { font-size: 18px !important; line-height: 1.7 !important; }
+.planet-item span { font-size: 16px !important; }
+@media (max-width: 700px) {
+  #inspector textarea#iDesc,
+  #inspector input#iFeatures,
+  textarea#pDesc,
+  #planetNote p,
+  .planet-item span {
+    font-size: 20px !important;
+    line-height: 1.75 !important;
+  }
+  #inspector textarea#iDesc,
+  textarea#pDesc { min-height: 220px !important; }
+}
+
 </style>
 </head>
 <body>
