@@ -129,6 +129,32 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
   .modal{width:96vw;max-height:92vh;padding:12px}
   .modal h2{font-size:15px}
 }
+
+/* Увеличенная типографика боковых окон на телефонах */
+@media screen and (max-width: 700px) {
+  .right { font-size: 13px; }
+  .right .section-title { font-size: 12px; letter-spacing: 1.4px; padding-bottom: 9px; }
+  .right .panel-title { font-size: 13px; line-height: 1.5; }
+  .right .card { padding: 12px; }
+  .right .card > div[style*="font-size:14px"] { font-size: 18px !important; line-height: 1.4; }
+  .right .field { margin: 10px 0; }
+  .right .field label { font-size: 11px; line-height: 1.5; margin-bottom: 6px; }
+  .right .field input,
+  .right .field select,
+  .right .field textarea { font-size: 15px; line-height: 1.45; padding: 10px; min-height: 42px; }
+  .right .field textarea { min-height: 96px; }
+  .right .pill { font-size: 10px; padding: 5px 7px; }
+  .right .check { font-size: 12px; line-height: 1.5; gap: 8px; }
+  .right .check input { width: 17px; height: 17px; }
+  .right .actions { gap: 8px; }
+  .right .actions button { font-size: 12px; min-height: 42px; padding: 10px 7px; }
+  .right .list { max-height: 30vh; }
+  .right .list-item { font-size: 12px; line-height: 1.5; padding: 10px 7px; }
+  .right .list-item i { width: 10px !important; height: 10px !important; }
+  .right .list-item button { font-size: 18px; padding: 0 5px; }
+  .right .empty { font-size: 12px; line-height: 1.7; }
+}
+
 </style>
 </head>
 <body>
