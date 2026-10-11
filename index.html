@@ -155,6 +155,13 @@ header{grid-column:1/4;display:flex;align-items:center;gap:18px;padding:8px 16px
   .right .empty { font-size: 12px; line-height: 1.7; }
 }
 
+
+.surface-map{position:relative;margin:10px 0;border:1px solid #5d5138;background:#081619;overflow:hidden}
+.surface-map svg{display:block;width:100%;height:auto;max-height:58vh}
+.surface-legend{display:flex;flex-wrap:wrap;gap:8px;padding:7px 9px;border-top:1px solid #3b382c;color:#9b9278;font-size:9px}
+.planet-surface-modal .field textarea{min-height:58px}
+@media(max-width:700px){.surface-legend{font-size:11px;line-height:1.5}.planet-surface-modal .field label{font-size:11px}.planet-surface-modal .field textarea{font-size:14px;min-height:70px}}
+
 </style>
 </head>
 <body>
@@ -402,6 +409,45 @@ function ensurePlanets(s){
     p.size=Number(p.size)||1; p.orbit=Number(p.orbit)||(70+i*48); p.angle=Number.isFinite(Number(p.angle))?Number(p.angle):(i/s.planets.length)*Math.PI*2-.8; p.desc=p.desc??"";
   });
 }
+function openPlanetMap(s,p){
+  if(!p.surface||typeof p.surface!=="object")p.surface={};
+  const surface=p.surface;
+  if(!Array.isArray(surface.cities))surface.cities=["Имперский город","Порт Аврелий","Старый бастион"];
+  if(!Array.isArray(surface.seas))surface.seas=["Море Пепла","Внутреннее море"];
+  if(!Array.isArray(surface.landscape))surface.landscape=["Горные хребты","Равнины","Леса"];
+  const escList=a=>a.map(x=>String(x)).join(", ");
+  const paths=[
+    "M70 60 L112 36 145 49 163 83 151 113 126 128 112 159 83 146 71 119 49 99Z",
+    "M205 39 L244 49 263 78 248 105 258 132 232 150 211 126 195 96Z",
+    "M150 169 L184 151 218 169 225 204 204 231 173 220 156 197Z",
+    "M54 183 L83 171 104 188 96 214 69 225 48 206Z",
+    "M266 171 L293 161 314 179 307 206 281 217 263 198Z"
+  ];
+  const cityCoords=[[96,92],[226,83],[187,190],[70,199],[287,188],[132,143],[241,121],[173,63]];
+  const renderSurface=()=>{
+    const cities=surface.cities;
+    const seas=surface.seas;
+    const land=surface.landscape;
+    const cityMarks=cities.map((name,i)=>{const [x,y]=cityCoords[i%cityCoords.length];return '<g><circle cx="'+x+'" cy="'+y+'" r="4" fill="#e6c777" stroke="#211a12" stroke-width="2"/><text x="'+(x+6)+'" y="'+(y-5)+'" fill="#f1dfb0" font-size="7" font-family="Georgia">'+esc(name)+'</text></g>'}).join("");
+    const seaLabels=seas.map((name,i)=>'<text x="'+(i%2?240:95)+'" y="'+(i%2?145:164)+'" fill="#a8d0ce" font-size="10" font-style="italic" font-family="Georgia">'+esc(name)+'</text>').join("");
+    $("#modalBody").innerHTML='<div class="system-modal planet-surface-modal"><h2>ПОВЕРХНОСТЬ · '+esc(p.name)+'</h2><div class="sub">'+esc(s.name)+' · Атлас ландшафта, морей и поселений</div>'+
+      '<div class="surface-map"><svg viewBox="0 0 340 250" role="img" aria-label="Карта поверхности планеты"><defs><linearGradient id="surfaceSea" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#173c43"/><stop offset="1" stop-color="#08191e"/></linearGradient><pattern id="surfaceGrid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#c5b17c" stroke-opacity=".12" stroke-width=".5"/></pattern></defs><rect width="340" height="250" fill="url(#surfaceSea)"/><rect width="340" height="250" fill="url(#surfaceGrid)"/>'+paths.map((d,i)=>'<path d="'+d+'" fill="'+["#66704b","#77704d","#586c4d","#8b7651","#6a7658"][i]+'" stroke="#b0a06b" stroke-width="1.2"/>').join("")+'<path d="M40 125 Q90 110 116 140 T173 151 T229 137 T315 147" fill="none" stroke="#a8d0ce" stroke-opacity=".5" stroke-width="2"/>'+seaLabels+cityMarks+'</svg><div class="surface-legend"><span>● Города</span><span>〰 Моря и водные пути</span><span>◆ Материки и ландшафт</span></div></div>'+
+      '<div class="field"><label>Ландшафты (через запятую)</label><textarea id="surfaceLandscape">'+esc(escList(land))+'</textarea></div>'+
+      '<div class="field"><label>Моря и океаны (через запятую)</label><textarea id="surfaceSeas">'+esc(escList(seas))+'</textarea></div>'+
+      '<div class="field"><label>Города и поселения (через запятую)</label><textarea id="surfaceCities">'+esc(escList(cities))+'</textarea></div>'+
+      '<div class="actions"><button type="button" id="saveSurface">Сохранить карту</button><button type="button" id="backToSystem">Назад к системе</button></div></div>';
+    $("#modalBack .modal").classList.add("wide");
+    $("#modalBack").classList.add("open");
+    $("#saveSurface").onclick=()=>{
+      const parse=id=>$("#"+id).value.split(",").map(x=>x.trim()).filter(Boolean);
+      surface.landscape=parse("surfaceLandscape");surface.seas=parse("surfaceSeas");surface.cities=parse("surfaceCities");
+      save();renderSurface();notify("Карта поверхности сохранена");
+    };
+    $("#backToSystem").onclick=()=>openSystemMiniMap(s);
+  };
+  renderSurface();
+}
+
 function openSystemMiniMap(s){
   ensureSystemFont(s);
   ensurePlanets(s);
@@ -469,6 +515,14 @@ function openSystemMiniMap(s){
   renderWindow();
 
   const body=modal();
+  body.ondblclick=e=>{
+    const planetEl=e.target.closest(".planet");
+    const item=e.target.closest("[data-planet-item]");
+    const id=planetEl?.dataset.planet || item?.dataset.planetItem;
+    if(!id)return;
+    const p=planetAt(id);
+    if(p){e.preventDefault();e.stopPropagation();openPlanetMap(s,p);}
+  };
   body.onclick=e=>{
     const btn=e.target.closest("button");
     const item=e.target.closest("[data-planet-item]");
