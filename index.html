@@ -432,7 +432,7 @@ function buildLegionAtlas(){
   });
   return {systems,factions,battles:[],links};
 }
-const ATLAS_DATA_VERSION="1";
+const ATLAS_DATA_VERSION="2";
 let data;
 const seedValid=window.IMPERIAL_ATLAS_SEED&&Array.isArray(window.IMPERIAL_ATLAS_SEED.systems)&&window.IMPERIAL_ATLAS_SEED.systems.length;
 if(seedValid&&localStorage.getItem("imperialAtlasSeedVersion")!==ATLAS_DATA_VERSION){
