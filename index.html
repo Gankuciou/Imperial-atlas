@@ -476,6 +476,7 @@ function save(){
   if(!atlasRemoteReady||atlasApplyingRemote||!atlasSupabase)return;
   clearTimeout(atlasRemoteSaveTimer);
   atlasRemoteSaveTimer=setTimeout(async()=>{
+    atlasRemoteSaveTimer=null;
     const payload=JSON.stringify(data);
     try{
       const {error}=await atlasSupabase.from("galaxy_map").upsert({id:1,data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
@@ -507,7 +508,7 @@ async function bootSharedAtlas(){
       atlasLastRemoteJson=JSON.stringify(data);
     }
     atlasRemoteReady=true;
-    atlasRemoteChannel=atlasSupabase.channel("imperial-atlas-shared-state").on("postgres_changes",{event:"UPDATE",schema:"public",table:"galaxy_map",filter:"id=eq.1"},payload=>{
+    atlasRemoteChannel=atlasSupabase.channel("imperial-atlas-shared-state").on("postgres_changes",{event:"*",schema:"public",table:"galaxy_map",filter:"id=eq.1"},payload=>{
       if(!payload.new?.data)return;
       const incoming=JSON.stringify(payload.new.data);
       if(incoming===atlasLastRemoteJson||atlasRemoteSaveTimer)return;
