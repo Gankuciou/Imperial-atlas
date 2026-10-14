@@ -266,7 +266,8 @@ textarea#pDesc {
 <aside class="side right"><div class="section-title">Инспектор</div><div id="inspector"><div class="empty">Выберите систему, фракцию или битву на карте.<br><br>Инструмент слева позволяет размещать новые объекты кликом по карте.</div></div><div class="section-title">Фракции</div><div class="list" id="factionsList"></div></aside>
 </div>
 <div class="modal-back" id="modalBack"><div class="modal"><button class="close" id="closeModal">×</button><div id="modalBody"></div></div></div>
-<script src="atlas-data.js"></script>\n<script>
+<script src="atlas-data.js"></script>\n<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 const TYPES={
  hive:["Мир-улей","h-type"],ocean:["Океанический мир","o-type"],forge:["Кузнечный мир","s-type"],agri:["Агромир","j-type"],death:["Мёртвый мир","d-type"],ice:["Ледяной мир","o-type"],jungle:["Джунглевый мир","j-type"],desert:["Пустынный мир","a-type"],fortress:["Крепость-мир","f-type"],daemon:["Демонический мир","x-type"],mining:["Шахтёрский мир","s-type"],civilized:["Имперский мир","a-type"],colony:["Колониальный мир","s-type"],sepulchre:["Мир-усыпальница","x-type"],shrine:["Священный мир","a-type"],military:["Военный мир","h-type"]
 };
@@ -464,7 +465,68 @@ let state={tool:"select",selected:null,zoom:1,panX:0,panY:0,drag:false,lastX:0,l
 function applyFontScale(){state.fontScale=Math.max(.8,Math.min(1.8,state.fontScale));document.documentElement.style.setProperty("--map-text-scale",state.fontScale);localStorage.setItem("imperialAtlasFontScale",String(state.fontScale));}
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 function uid(p){return p+Math.random().toString(36).slice(2,9)}
-function save(){localStorage.setItem("imperialAtlasV2",JSON.stringify(data));$("#saveStatus").textContent="СОХРАНЕНО "+new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"})}
+let atlasRemoteReady=false,atlasRemoteSaveTimer=null,atlasRemoteChannel=null,atlasApplyingRemote=false,atlasLastRemoteJson="";
+const ATLAS_SUPABASE_URL="https://ylzgwgdcmrwldzkdcuro.supabase.co";
+const ATLAS_SUPABASE_KEY="sb_publishable_PEL5J5QxHOkJD9hrveyQyg_sy7FQqPW";
+let atlasSupabase=null;
+function save(){
+  const json=JSON.stringify(data);
+  localStorage.setItem("imperialAtlasV2",json);
+  $("#saveStatus").textContent=atlasRemoteReady?"СИНХРОНИЗАЦИЯ…":"ЛОКАЛЬНО СОХРАНЕНО";
+  if(!atlasRemoteReady||atlasApplyingRemote||!atlasSupabase)return;
+  clearTimeout(atlasRemoteSaveTimer);
+  atlasRemoteSaveTimer=setTimeout(async()=>{
+    const payload=JSON.stringify(data);
+    try{
+      const {error}=await atlasSupabase.from("atlas_state").upsert({id:"main",data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
+      if(error)throw error;
+      atlasLastRemoteJson=payload;
+      $("#saveStatus").textContent="ОБЩЕЕ СОХРАНЕНО "+new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
+    }catch(err){
+      console.error("Supabase save failed",err);
+      $("#saveStatus").textContent="ОШИБКА ОБЩЕГО СОХРАНЕНИЯ";
+      notify("Не удалось сохранить общий атлас. Проверьте соединение.");
+    }
+  },450);
+}
+async function bootSharedAtlas(){
+  const status=$("#saveStatus");
+  try{
+    if(!window.supabase?.createClient)throw new Error("Supabase SDK unavailable");
+    atlasSupabase=window.supabase.createClient(ATLAS_SUPABASE_URL,ATLAS_SUPABASE_KEY);
+    status.textContent="ЗАГРУЗКА ОБЩЕГО АТЛАСА…";
+    const {data:row,error}=await atlasSupabase.from("atlas_state").select("data").eq("id","main").maybeSingle();
+    if(error)throw error;
+    if(row&&row.data&&Array.isArray(row.data.systems)&&Array.isArray(row.data.factions)&&Array.isArray(row.data.battles)&&Array.isArray(row.data.links)){
+      data=row.data;
+      atlasLastRemoteJson=JSON.stringify(data);
+      localStorage.setItem("imperialAtlasV2",atlasLastRemoteJson);
+    }else{
+      const {error:insertError}=await atlasSupabase.from("atlas_state").upsert({id:"main",data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
+      if(insertError)throw insertError;
+      atlasLastRemoteJson=JSON.stringify(data);
+    }
+    atlasRemoteReady=true;
+    atlasRemoteChannel=atlasSupabase.channel("imperial-atlas-shared-state").on("postgres_changes",{event:"UPDATE",schema:"public",table:"atlas_state",filter:"id=eq.main"},payload=>{
+      if(!payload.new?.data)return;
+      const incoming=JSON.stringify(payload.new.data);
+      if(incoming===atlasLastRemoteJson||atlasRemoteSaveTimer)return;
+      atlasApplyingRemote=true;
+      data=payload.new.data;
+      atlasLastRemoteJson=incoming;
+      localStorage.setItem("imperialAtlasV2",incoming);
+      try{render()}finally{atlasApplyingRemote=false}
+      status.textContent="ПОЛУЧЕНЫ ОБЩИЕ ИЗМЕНЕНИЯ";
+    }).subscribe();
+    render();
+    status.textContent="ОБЩИЙ АТЛАС ПОДКЛЮЧЁН";
+  }catch(err){
+    console.error("Shared atlas unavailable",err);
+    status.textContent="ОФЛАЙН · ЛОКАЛЬНОЕ СОХРАНЕНИЕ";
+    notify("Общий атлас пока недоступен; изменения сохраняются в этом браузере.");
+    render();
+  }
+}
 function notify(t){const n=$("#notice");n.textContent=t;n.classList.add("show");setTimeout(()=>n.classList.remove("show"),1700)}
 function faction(id){return data.factions.find(f=>f.id===id)}
 function applyTransform(){ $("#world").style.transform=`translate(${state.panX}px,${state.panY}px) scale(${state.zoom})` }
@@ -795,6 +857,6 @@ $("#fontDown").onclick=e=>{e.preventDefault();state.fontScale-=.1;applyFontScale
 $("#zin").onclick=()=>{state.zoom=Math.min(2.3,state.zoom*1.15);applyTransform()};$("#zout").onclick=()=>{state.zoom=Math.max(.45,state.zoom*.87);applyTransform()};$("#zreset").onclick=()=>{state.zoom=1;state.panX=state.panY=0;applyTransform()};
 $("#layerNames").onchange=e=>$$(".system").forEach(x=>x.style.display=e.target.checked?"":"none");$("#layerBattles").onchange=e=>$$(".battle").forEach(x=>x.style.display=e.target.checked?"":"none");
 $("#exportBtn").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:"application/json"}));a.download="imperial-atlas-map.json";a.click();notify("JSON карты экспортирован")};$("#importBtn").onclick=()=>$("#fileInput").click();$("#fileInput").onchange=e=>{const file=e.target.files[0];if(!file)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.systems||!x.factions||!x.battles)throw 0;data=x;save();render();notify("Карта импортирована")}catch{alert("Неверный формат карты")}};r.readAsText(file)};
-render();
+bootSharedAtlas();
 </script>
 </body></html>
