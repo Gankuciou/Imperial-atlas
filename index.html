@@ -498,7 +498,7 @@ async function bootSharedAtlas(){
     status.textContent="ЗАГРУЗКА ОБЩЕГО АТЛАСА…";
     const {data:row,error}=await atlasSupabase.from("galaxy_map").select("data").eq("id",1).maybeSingle();
     if(error)throw error;
-    if(row&&row.data&&Array.isArray(row.data.systems)&&Array.isArray(row.data.factions)&&Array.isArray(row.data.battles)&&Array.isArray(row.data.links)){
+    if(row&&row.data&&Array.isArray(row.data.systems)&&row.data.systems.length>0&&Array.isArray(row.data.factions)&&Array.isArray(row.data.battles)&&Array.isArray(row.data.links)){
       data=row.data;
       atlasLastRemoteJson=JSON.stringify(data);
       localStorage.setItem("imperialAtlasV2",atlasLastRemoteJson);
