@@ -478,7 +478,7 @@ function save(){
   atlasRemoteSaveTimer=setTimeout(async()=>{
     const payload=JSON.stringify(data);
     try{
-      const {error}=await atlasSupabase.from("atlas_state").upsert({id:"main",data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
+      const {error}=await atlasSupabase.from("galaxy_map").upsert({id:1,data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
       if(error)throw error;
       atlasLastRemoteJson=payload;
       $("#saveStatus").textContent="ОБЩЕЕ СОХРАНЕНО "+new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
@@ -495,19 +495,19 @@ async function bootSharedAtlas(){
     if(!window.supabase?.createClient)throw new Error("Supabase SDK unavailable");
     atlasSupabase=window.supabase.createClient(ATLAS_SUPABASE_URL,ATLAS_SUPABASE_KEY);
     status.textContent="ЗАГРУЗКА ОБЩЕГО АТЛАСА…";
-    const {data:row,error}=await atlasSupabase.from("atlas_state").select("data").eq("id","main").maybeSingle();
+    const {data:row,error}=await atlasSupabase.from("galaxy_map").select("data").eq("id",1).maybeSingle();
     if(error)throw error;
     if(row&&row.data&&Array.isArray(row.data.systems)&&Array.isArray(row.data.factions)&&Array.isArray(row.data.battles)&&Array.isArray(row.data.links)){
       data=row.data;
       atlasLastRemoteJson=JSON.stringify(data);
       localStorage.setItem("imperialAtlasV2",atlasLastRemoteJson);
     }else{
-      const {error:insertError}=await atlasSupabase.from("atlas_state").upsert({id:"main",data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
+      const {error:insertError}=await atlasSupabase.from("galaxy_map").upsert({id:1,data:data,updated_at:new Date().toISOString()},{onConflict:"id"});
       if(insertError)throw insertError;
       atlasLastRemoteJson=JSON.stringify(data);
     }
     atlasRemoteReady=true;
-    atlasRemoteChannel=atlasSupabase.channel("imperial-atlas-shared-state").on("postgres_changes",{event:"UPDATE",schema:"public",table:"atlas_state",filter:"id=eq.main"},payload=>{
+    atlasRemoteChannel=atlasSupabase.channel("imperial-atlas-shared-state").on("postgres_changes",{event:"UPDATE",schema:"public",table:"galaxy_map",filter:"id=eq.1"},payload=>{
       if(!payload.new?.data)return;
       const incoming=JSON.stringify(payload.new.data);
       if(incoming===atlasLastRemoteJson||atlasRemoteSaveTimer)return;
