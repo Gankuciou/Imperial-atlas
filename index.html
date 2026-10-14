@@ -235,64 +235,11 @@ textarea#pDesc {
   textarea#pDesc { min-height: 220px !important; }
 }
 
- 
-/* Mobile usability: slide-out tool and inspector drawers, larger touch targets. */
-.mobile-nav-btn{display:none}
-.drawer-scrim{display:none}
-@media (max-width:700px){
-  .app{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:52px minmax(0,1fr)!important}
-  header{grid-column:1!important;display:flex;gap:6px;padding:5px 7px!important;min-width:0}
-  .mobile-nav-btn{display:block;flex:0 0 auto;min-height:40px;padding:7px 9px;background:#171916;border:1px solid #6a5738;color:#dfc78e;font-size:11px;border-radius:3px;white-space:nowrap;touch-action:manipulation}
-  .brand{font-size:10px!important;letter-spacing:.6px!important;white-space:normal;line-height:1.2;flex:1;min-width:0;text-align:center}
-  .brand small,.brand span,.status{display:none!important}
-  .side,.right{display:block!important;position:fixed!important;z-index:80;top:52px;bottom:0;width:min(88vw,360px);max-width:360px;overflow:auto;padding:12px!important;background:#0c0f0e;border:1px solid #655239;box-shadow:0 12px 35px #000c;transition:transform .22s ease;overscroll-behavior:contain}
-  .side{left:0;transform:translateX(-105%)}
-  .right{right:0;left:auto;transform:translateX(105%);border-left:1px solid #655239}
-  body.tools-open .side{transform:translateX(0)}
-  body.inspector-open .right{transform:translateX(0)}
-  body.tools-open .right{visibility:hidden}
-  body.inspector-open .side{visibility:hidden}
-  body.tools-open:after,body.inspector-open:after{content:"";position:fixed;inset:52px 0 0;background:#0009;z-index:70}
-  .section-title{font-size:12px!important;line-height:1.5;padding:8px 0}
-  .tool{min-height:50px;padding:11px 10px;margin:6px 0;touch-action:manipulation}
-  .tool strong{font-size:12px}
-  .tool span{font-size:10px;line-height:1.45}
-  .right .actions,.actions{gap:8px}
-  .right .actions button,.actions button{min-height:46px;font-size:12px}
-  .field input,.field select,.field textarea{font-size:16px!important;min-height:44px;padding:10px}
-  .field label{font-size:12px;line-height:1.4}
-  .check{font-size:12px;min-height:32px}
-  .check input{width:18px;height:18px}
-  .list{max-height:35vh}
-  .list-item{min-height:42px;font-size:12px}
-  .map{min-width:0;touch-action:pan-x pan-y}
-  .zoom{z-index:12;bottom:10px;right:10px;gap:7px}
-  .zoom button{min-width:48px;min-height:48px;font-size:17px}
-  .modal-back{z-index:100;padding:6px;align-items:flex-start}
-  .modal,.modal.wide{width:100%!important;max-width:100%;max-height:calc(100dvh - 12px);margin:0;padding:14px 12px 22px;overflow:auto;overscroll-behavior:contain}
-  .modal .close{position:sticky;top:0;float:right;z-index:110;width:42px;height:42px;font-size:28px;background:#151715;border:1px solid #806944;color:#e3ca8c;border-radius:3px;touch-action:manipulation}
-  .modal h2{font-size:17px;line-height:1.4}
-  .modal .sub{font-size:10px;line-height:1.5}
-  .row{grid-template-columns:1fr!important}
-  .system-map{height:48dvh;min-height:240px;max-height:440px}
-  .system-map-controls button{min-width:44px;min-height:44px}
-  .planet-list{grid-template-columns:1fr;max-height:26vh}
-  .planet-item{padding:11px;font-size:12px}
-  .planet-item button{min-height:40px;font-size:11px}
-  .surface-map svg{max-height:44dvh}
-  .planet-note{max-height:30%;overflow:auto}
-  .surface-legend{font-size:11px;line-height:1.5}
-}
-@media (max-width:390px){
-  .mobile-nav-btn{font-size:10px;padding:6px 7px}
-  .brand{font-size:9px!important}
-}
-
 </style>
 </head>
 <body>
 <div class="app">
-<header><button class="mobile-nav-btn" id="mobileToolsBtn" aria-label="Открыть инструменты" aria-expanded="false">☰ Инструменты</button><div class="brand">✦ АТЛАС ИМПЕРИУМА <span style="font-size:8px;color:#8f7b55">v5</span><small>АСТРОГРАФИЧЕСКИЙ РЕДАКТОР · ВЕЛИКАЯ ЕРЕСЬ · М30</small></div><button class="mobile-nav-btn" id="mobileInspectorBtn" aria-label="Открыть панель" aria-expanded="false">☷ Панель</button><div class="status">КАРТА: <b id="saveStatus">АВТОСОХРАНЕНИЕ</b></div></header>
+<header><div class="brand">✦ АТЛАС ИМПЕРИУМА <span style="font-size:8px;color:#8f7b55">v5</span><small>АСТРОГРАФИЧЕСКИЙ РЕДАКТОР · ВЕЛИКАЯ ЕРЕСЬ · М30</small></div><div class="status">КАРТА: <b id="saveStatus">АВТОСОХРАНЕНИЕ</b></div></header>
 <aside class="side">
 <div class="section-title">Инструменты · Механикум</div>
 <button class="tool active" data-tool="select">✥ <strong>Выбор</strong><span>Осмотр и редактирование объектов</span></button>
@@ -906,14 +853,7 @@ function handleLinkTarget(target){if(!state.pendingLink){state.pendingLink=targe
 $("#map").addEventListener("click",e=>{if(state.drag||e.target.closest(".system,.battle"))return;const p=mapPoint(e);if(state.tool==="system")openSystemModal(Math.max(20,Math.min(4480,p.x)),Math.max(20,Math.min(3400,p.y)));else if(state.tool==="battle")openBattleModal(p.x,p.y);else if(state.tool==="faction")openFactionModal();else if(state.tool==="link"){const target=data.systems.find(s=>Math.hypot(s.x-p.x,s.y-p.y)<25);if(!target){notify("Для связи кликните по системе");return}handleLinkTarget(target)}});
 $("#map").addEventListener("mousedown",e=>{if(e.button!==0||e.target.closest(".system,.battle"))return;state.drag=false;state.lastX=e.clientX;state.lastY=e.clientY;const move=ev=>{const dx=ev.clientX-state.lastX,dy=ev.clientY-state.lastY;if(Math.abs(dx)+Math.abs(dy)>3)state.drag=true;state.panX+=dx;state.panY+=dy;state.lastX=ev.clientX;state.lastY=ev.clientY;applyTransform()};const up=()=>{window.removeEventListener("mousemove",move);window.removeEventListener("mouseup",up);setTimeout(()=>{state.drag=false},0)};window.addEventListener("mousemove",move);window.addEventListener("mouseup",up)});
 $("#map").addEventListener("wheel",e=>{e.preventDefault();const old=state.zoom,stateNew=Math.max(.45,Math.min(2.3,old*(e.deltaY<0?1.12:.89)));const r=$("#map").getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top;state.panX=mx-(mx-state.panX)*(stateNew/old);state.panY=my-(my-state.panY)*(stateNew/old);state.zoom=stateNew;applyTransform()},{passive:false});
-$$(".tool[data-tool]").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$("#closeModal").onclick=()=>{$("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide")};
-const mobileToolsBtn=$("#mobileToolsBtn"),mobileInspectorBtn=$("#mobileInspectorBtn");
-function closeMobileDrawers(){document.body.classList.remove("tools-open","inspector-open");mobileToolsBtn?.setAttribute("aria-expanded","false");mobileInspectorBtn?.setAttribute("aria-expanded","false")}
-mobileToolsBtn?.addEventListener("click",()=>{const open=!document.body.classList.contains("tools-open");closeMobileDrawers();if(open){document.body.classList.add("tools-open");mobileToolsBtn.setAttribute("aria-expanded","true")}});
-mobileInspectorBtn?.addEventListener("click",()=>{const open=!document.body.classList.contains("inspector-open");closeMobileDrawers();if(open){document.body.classList.add("inspector-open");mobileInspectorBtn.setAttribute("aria-expanded","true")}});
-document.addEventListener("click",e=>{if((document.body.classList.contains("tools-open")||document.body.classList.contains("inspector-open"))&&e.target===document.body)closeMobileDrawers()});
-$(".tool[data-tool]").forEach(b=>b.addEventListener("click",()=>{if(window.matchMedia("(max-width:700px)").matches)closeMobileDrawers()}));
-$("#modalBack").onclick=e=>{if(e.target.id==="modalBack"){e.currentTarget.classList.remove("open");$("#modalBack .modal").classList.remove("wide")}};
+$$(".tool[data-tool]").forEach(b=>b.onclick=()=>setTool(b.dataset.tool));$("#closeModal").onclick=()=>{$("#modalBack").classList.remove("open");$("#modalBack .modal").classList.remove("wide")};$("#modalBack").onclick=e=>{if(e.target.id==="modalBack"){e.currentTarget.classList.remove("open");$("#modalBack .modal").classList.remove("wide")}};
 $("#fontDown").onclick=e=>{e.preventDefault();state.fontScale-=.1;applyFontScale();render()};$("#fontReset").onclick=e=>{e.preventDefault();state.fontScale=1;applyFontScale();render()};$("#fontUp").onclick=e=>{e.preventDefault();state.fontScale+=.1;applyFontScale();render()};applyFontScale();
 $("#zin").onclick=()=>{state.zoom=Math.min(2.3,state.zoom*1.15);applyTransform()};$("#zout").onclick=()=>{state.zoom=Math.max(.45,state.zoom*.87);applyTransform()};$("#zreset").onclick=()=>{state.zoom=1;state.panX=state.panY=0;applyTransform()};
 $("#layerNames").onchange=e=>$$(".system").forEach(x=>x.style.display=e.target.checked?"":"none");$("#layerBattles").onchange=e=>$$(".battle").forEach(x=>x.style.display=e.target.checked?"":"none");
