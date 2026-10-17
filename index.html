@@ -488,8 +488,9 @@ function save(){
       $("#saveStatus").textContent="ОБЩЕЕ СОХРАНЕНО "+new Date().toLocaleTimeString("ru-RU",{hour:"2-digit",minute:"2-digit"});
     }catch(err){
       console.error("Supabase save failed",err);
+      const detail=String(err?.message||err?.details||err?.hint||err||"Неизвестная ошибка");
       $("#saveStatus").textContent="ОШИБКА ОБЩЕГО СОХРАНЕНИЯ";
-      notify("Не удалось сохранить общий атлас. Проверьте соединение.");
+      notify("Ошибка общего сохранения: "+detail.slice(0,180));
     }
   },450);
 }
